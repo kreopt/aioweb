@@ -1,0 +1,13 @@
+aiohttp
+aiohttp_jinja2
+aiohttp_security
+aioredis
+aiosmtplib
+aiohttp_session
+aiohttp-devtools
+aiohttp_debugtoolbar
+aiofiles
+passlib
+pytest-asyncio
+pycrypto
+orator
