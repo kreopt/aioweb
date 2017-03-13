@@ -1,0 +1,8 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+    <table class="table table--striped">
+        {% for model in models %}
+            <tr><td><a href="/admin/{{ model }}/">{{ model }}</a></td></tr>
+        {% endfor %}
+    </table>
+{% endblock %}

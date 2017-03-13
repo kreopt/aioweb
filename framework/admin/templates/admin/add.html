@@ -1,0 +1,18 @@
+{% extends 'admin/base.html' %}
+{% block content %}
+    <menu class="toolbar">
+        <div><a class="button" href="/admin/">Home</a> / <a class="button" href="/admin/{{ model }}/">{{ model }}</a></div>
+        <a class="button" href="/admin/{{ model }}/add/">Add {{ model }}</a>
+    </menu>
+<form method="post">
+    <table class="table table--striped">
+        {% for field in fields %}
+            <tr>
+                <th>{{ field[0] }}</th>
+                <td>{{ field[1] }}</td>
+            </tr>
+        {% endfor %}
+    </table>
+    <button>Add</button>
+</form>
+{% endblock %}

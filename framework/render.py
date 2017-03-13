@@ -114,6 +114,35 @@ class DjangoStatic(Extension):
         else:
             return nodes.Output([call], lineno=lineno)
 
+class DjangoUrl(Extension):
+    """
+    Implements django's `{% ulr %}` tag::
+        My url: {% url 'url' %}
+        {% static 'url' as my_url %}
+        My url in a var: {{ my_ulr }}
+    """
+    tags = set(['url'])
+
+    def _url(self, path):
+        return self.environment.globals['url'](path)
+
+    def parse(self, parser):
+        lineno = next(parser.stream).lineno
+        token = parser.stream.expect(lexer.TOKEN_STRING)
+        path = nodes.Const(token.value)
+
+
+        call = self.call_method('_url', [path], lineno=lineno)
+
+        token = parser.stream.current
+        if token.test('name:as'):
+            next(parser.stream)
+            as_var = parser.stream.expect(lexer.TOKEN_NAME)
+            as_var = nodes.Name(as_var.value, 'store', lineno=as_var.lineno)
+            return nodes.Assign(as_var, call, lineno=lineno)
+        else:
+            return nodes.Output([call], lineno=lineno)
+
 
 def template_view(tpl_name, **kwargs):
     @template(tpl_name)
@@ -125,7 +154,16 @@ def template_view(tpl_name, **kwargs):
 async def setup(app):
     procs = [aiohttp_jinja2.request_processor]
     # setup Jinja2 template renderer
+    app_loaders = []
+    for app_name in settings.APPS:
+        try:
+            app_loaders.append(jinja2.PackageLoader("app.%s" % app_name, 'templates'))
+        except ImportError:
+            pass
+        try:
+            app_loaders.append(jinja2.PackageLoader("%s" % app_name, 'templates'))
+        except ImportError:
+            pass
     aiohttp_jinja2.setup(
-        app, loader=jinja2.ChoiceLoader([
-                                            jinja2.PackageLoader(app, 'templates') for app in settings.APPS
-                                        ]), context_processors=procs, extensions=[DjangoStatic, DjangoLoad, DjangoCsrf])
+        app, loader=jinja2.ChoiceLoader(app_loaders), context_processors=procs, extensions=[DjangoStatic, DjangoLoad,
+                                                                                            DjangoCsrf, DjangoUrl])

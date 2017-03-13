@@ -15,6 +15,7 @@ class Application(AioApp):
         self.modules = set()
 
     async def setup(self):
+
         routes.setup_routes(self)
         for mod_name in settings.MODULES:
             try:

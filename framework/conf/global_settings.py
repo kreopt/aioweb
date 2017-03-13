@@ -1,4 +1,5 @@
 MODULES = [
+    'admin',
     'db',
     'session',
     'auth',

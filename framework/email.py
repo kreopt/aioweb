@@ -12,10 +12,16 @@ async def mail_traceback(request):
     try:
         await request.app.smtp.connect()
         # Create a text/plain message
-        msg = email.message_from_string(trace)
+        await request.post()
+        msg = email.message_from_string("%s\n\nmatch:\n%s\n\nPOST:\n%s\n\nGET:\n%s" % (
+            trace,
+            request.match_info,
+            request.POST,
+            request.GET
+        ))
 
         msg['Subject'] = 'Streamedian.com error report at %s:%s' % (request.method, request.url)
-        msg['From'] = 'noreply@streamedian.com <Streamedian service>'
+        msg['From'] = 'Streamedian service <noreply@streamedian.com>'
         msg['To'] = 'kreopt@specforge.com'
 
         await request.app.smtp.send_message(msg, 'noreply@streamedian.com', getattr(settings, 'ADMINS', []))
@@ -36,6 +42,22 @@ async def error_mailer(app, handler):
             await mail_traceback(request)
             raise e
     return middleware_handler
+
+async def send_mail(app,
+                    sender='Streamedian service <noreply@streamedian.com>',
+                    recipients=tuple(),
+                    subject='',
+                    body=''):
+    if not len(recipients): return
+    await app.smtp.connect()
+
+    msg = email.message_from_string(body)
+
+    msg['Subject'] = subject
+    msg['From'] = sender
+    msg['To'] = ', '.join(recipients)
+
+    return await app.smtp.send_message(msg, sender, recipients)
 
 async def setup(app):
     setattr(app, 'smtp', aiosmtplib.SMTP(hostname='localhost', port=25, loop=app.loop))
