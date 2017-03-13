@@ -6,12 +6,12 @@ os.environ.setdefault("SETTINGS_MODULE", "settings")
 import asyncio
 import logging
 import settings
-from framework.email import error_mailer
-import framework
+from aioweb.email import error_mailer
+import aioweb
 
 async def init(loop, argv):
     # setup application and extensions
-    app = framework.Application(loop=loop, middlewares=[
+    app = aioweb.Application(loop=loop, middlewares=[
         error_mailer
     ])
 
@@ -26,7 +26,7 @@ def main(argv):
 
     loop = asyncio.get_event_loop()
     app = loop.run_until_complete(init(loop, argv))
-    framework.run_app(app)
+    aioweb.run_app(app)
 
 
 def get_app(loop):

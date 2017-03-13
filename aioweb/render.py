@@ -10,7 +10,7 @@ from aiohttp_jinja2 import template as template, render_string, render_template
 from jinja2.ext import Extension
 from jinja2 import lexer, nodes
 import json as json_serializer
-from framework.conf import settings
+from aioweb.conf import settings
 
 
 def json_response(encoding='utf-8'):

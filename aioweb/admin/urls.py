@@ -1,5 +1,5 @@
 import landing.views as views
-from framework.render import template_view
+from aioweb.render import template_view
 
 
 def setup_url(router):

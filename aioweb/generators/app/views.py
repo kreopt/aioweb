@@ -10,10 +10,10 @@ from .models.user_profile import UserProfile
 from orator.exceptions.query import QueryException
 
 from .models.user_domain import UserDomain
-from framework.auth import authenticate, login_required
-from framework.auth.models.user import User
-from framework.email import mail_traceback, send_mail
-from framework.render import template, render_template
+from aioweb.auth import authenticate, login_required
+from aioweb.auth.models.user import User
+from aioweb.email import mail_traceback, send_mail
+from aioweb.render import template, render_template
 from settings import BASE_DIR
 
 

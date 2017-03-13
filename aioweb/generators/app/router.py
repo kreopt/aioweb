@@ -1,4 +1,4 @@
-from framework.routes import Router
+from aioweb.routes import Router
 
 
 class AppRouter(Router):

@@ -2,10 +2,10 @@ from aiohttp import web
 from aiohttp_jinja2 import render_template
 from orator.exceptions.query import QueryException
 
-from framework.admin import form
-from framework.admin.form import FieldInstance
-from framework.auth import login_required
-from framework.render import template
+from aioweb.admin import form
+from aioweb.admin.form import FieldInstance
+from aioweb.auth import login_required
+from aioweb.render import template
 import inspect
 
 from .site import MODELS

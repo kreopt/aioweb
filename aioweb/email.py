@@ -5,7 +5,7 @@ import aiosmtplib
 from aiohttp import web
 from aiohttp.log import web_logger
 
-from framework import settings
+from aioweb import settings
 
 async def mail_traceback(request):
     trace = traceback.format_exc()

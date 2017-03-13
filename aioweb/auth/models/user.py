@@ -1,7 +1,7 @@
 from orator import Model, mutator
 from passlib.handlers.sha2_crypt import sha256_crypt
 
-from framework.admin import form
+from aioweb.admin import form
 
 
 class AbstractUser(object):

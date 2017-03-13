@@ -1,7 +1,7 @@
 import os
 import shutil
 
-from framework import settings
+from aioweb import settings
 
 
 def run(*args, **kwargs):

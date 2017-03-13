@@ -1,6 +1,6 @@
 import os
 
-from framework import settings
+from aioweb import settings
 
 
 def run(app_name=None, *args, **kwargs):

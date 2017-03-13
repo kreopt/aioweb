@@ -1,10 +1,6 @@
 import importlib
 
-from aiohttp import web
-
-from framework import settings
-
-# subapp = web.Application()
+from aioweb import settings
 
 async def setup(app):
     for appName in settings.APPS:

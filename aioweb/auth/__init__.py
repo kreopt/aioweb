@@ -9,8 +9,8 @@ from aiohttp_security import setup as setup_security,  authorized_userid
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp.log import web_logger
 
-from framework.auth.models.user import User, AbstractUser
-from framework.db import init_db
+from aioweb.auth.models.user import User, AbstractUser
+from aioweb.db import init_db
 
 
 def login_required(login_url='/login/', login_route=''):

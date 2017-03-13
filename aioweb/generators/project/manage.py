@@ -8,11 +8,11 @@ import traceback
 
 os.environ.setdefault("SETTINGS_MODULE", "settings")
 
-import framework
+import aioweb
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    app = framework.Application(loop=loop, middlewares=[])
+    app = aioweb.Application(loop=loop, middlewares=[])
     app = loop.run_until_complete(app.setup())
 
     if len(sys.argv) >= 1:
