@@ -5,7 +5,7 @@ os.environ.setdefault("SETTINGS_MODULE", "settings")
 
 import asyncio
 import logging
-import settings
+from aioweb.conf import settings
 from aioweb.email import error_mailer
 import aioweb
 

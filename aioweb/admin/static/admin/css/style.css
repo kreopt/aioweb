@@ -1,0 +1,31 @@
+.content {
+    max-width: 1024px;
+    margin: auto;
+}
+.toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+.admin > header .content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 50px;
+    border-bottom: 1px solid;
+}
+.table {
+    width: 100%;
+}
+.table td, .table th {
+    padding: 4px 10px;
+}
+.table th {
+    width: 200px;
+}
+.table.table--striped tr:nth-child(odd) {
+    background: #ccc;
+}
+.table.table--striped tr:nth-child(even) {
+    background: #eee;
+}

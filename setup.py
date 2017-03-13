@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 
-from distutils.core import setup
+from setuptools import setup
 
 from setuptools import find_packages
 
@@ -11,4 +11,21 @@ setup(name='aioweb',
       author_email='kreopt@gmail.com',
       url='https://github.com/kreopt/aioweb/',
       packages=find_packages(),
+      include_package_data=True,
+      install_requires=[
+            'aiohttp',
+            'aiohttp_jinja2',
+            'aiohttp_security',
+            'aioredis',
+            'aiosmtplib',
+            'aiohttp_session',
+            'aiofiles',
+            'passlib',
+            'pycrypto',
+            'orator'
+      ],
+      extras_require={
+              'dev': ['aiohttp-devtools', 'aiohttp_debugtoolbar'],
+              'test': ['pytest-asyncio'],
+      },
      )
