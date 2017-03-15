@@ -1,4 +1,5 @@
 import functools
+import os
 from urllib.parse import urljoin
 
 import aiohttp_jinja2
@@ -9,7 +10,6 @@ from aiohttp.abc import AbstractView
 from aiohttp_jinja2 import template as template, render_string, render_template
 from jinja2.ext import Extension
 from jinja2 import lexer, nodes
-import json as json_serializer
 from aioweb.conf import settings
 
 
@@ -155,15 +155,16 @@ async def setup(app):
     procs = [aiohttp_jinja2.request_processor]
     # setup Jinja2 template renderer
     app_loaders = []
-    for app_name in settings.APPS:
-        try:
-            app_loaders.append(jinja2.PackageLoader("app.%s" % app_name, 'templates'))
-        except ImportError:
-            pass
-        try:
-            app_loaders.append(jinja2.PackageLoader("%s" % app_name, 'templates'))
-        except ImportError:
-            pass
+    app_loaders.append(jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR,"app/views")))
+    # for app_name in settings.APPS:
+    #     try:
+    #         app_loaders.append(jinja2.PackageLoader("app", os.path.join("views", app_name)))
+    #     except ImportError as e:
+    #         pass
+        # try:
+        #     app_loaders.append(jinja2.PackageLoader("%s" % app_name, 'templates'))
+        # except ImportError:
+        #     pass
     aiohttp_jinja2.setup(
         app, loader=jinja2.ChoiceLoader(app_loaders), context_processors=procs, extensions=[DjangoStatic, DjangoLoad,
                                                                                             DjangoCsrf, DjangoUrl])

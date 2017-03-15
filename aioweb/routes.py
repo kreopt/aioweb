@@ -1,9 +1,15 @@
 import importlib
 
 from aiohttp import hdrs
+from aiohttp.log import web_logger
+
+from aioweb.util import snake_to_camel
 
 
 class Router(object):
+
+    controllers = {}
+
     def __init__(self, app, name='', prefix='', parent=None):
         self.app = app
         self.name = name
@@ -11,7 +17,7 @@ class Router(object):
         self.parent = parent
         self.routers = []
 
-    def _get_namespace(self, name=''):
+    def _get_namespace(self, name=None):
         names = []
         if name:
             names.append(name)
@@ -23,7 +29,7 @@ class Router(object):
                 names.append(parent.name)
             parent = parent.parent
         names.reverse()
-        return ':'.join(names)
+        return ':'.join(names) if len(names) else None
 
     def _get_baseurl(self, url):
         prefixes = [url]
@@ -56,34 +62,86 @@ class Router(object):
         except AttributeError:
             pass
 
-    def head(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_HEAD, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+    def _import_controller(self, name):
+        ctrl_class_name = snake_to_camel("%s_controller" % name)
 
-    def get(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_GET, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+        mod = importlib.import_module("app.controllers.%s" % name)
 
-    def post(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_POST, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+        ctrl_class = getattr(mod, ctrl_class_name)
 
-    def put(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_PUT, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+        if ctrl_class_name not in Router.controllers:
+            Router.controllers[ctrl_class_name] = ctrl_class(self.app)
+        return Router.controllers[ctrl_class_name]
 
-    def patch(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_PATCH, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+    def _resolve_handler_by_name(self, name):
+        try:
+            [controller, action] = name.split('#')
+        except ValueError as e:
+            web_logger.warn("invalid action signature: %s. skip" % name)
+            raise e
 
-    def delete(self, url, handler, name='', **kwargs):
-        self.app.router.add_route(hdrs.METH_DELETE, self._get_baseurl(url), handler, name=self._get_namespace(name), **kwargs)
+        try:
+            ctrl_inst = self._import_controller(controller)
+        except Exception as e:
+            web_logger.warn("Failed to import controller: %s. skip\n reason : %s" % (controller, e))
+            raise e
 
-    def resource(self, res_name, controller, prefix='', name='', **kwargs):
+        async def action_handler(request):
+            handler = getattr(ctrl_inst, '_dispatch')
+            return await handler(action, request)
+
+        url = "/%s/%s/" % (controller, action)
+
+        return [url, action_handler]
+
+    def _resolve_handler(self, url, handler=None):
+        if handler is None:
+            [url, handler] = self._resolve_handler_by_name(url)
+        elif type(handler) == str:
+            [_, handler] = self._resolve_handler_by_name(handler)
+        return url, handler
+
+    def _add_route(self, method, url, handler=None, name=None, **kwargs):
+        try:
+            [url, handler] = self._resolve_handler(url, handler)
+            self.app.router.add_route(method, self._get_baseurl(url), handler, name=self._get_namespace(name),
+                                      **kwargs)
+        except Exception as e:
+            web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else '**unnamed**', e))
+
+
+    def head(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_HEAD, url, handler, name, **kwargs)
+
+    def get(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_GET, url, handler, name, **kwargs)
+
+    def post(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_POST, url, handler, name, **kwargs)
+
+    def put(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_PUT, url, handler, name, **kwargs)
+
+    def patch(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_PATCH, url, handler, name, **kwargs)
+
+    def delete(self, url, handler=None, name=None, **kwargs):
+        self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
+
+    def resource(self, res_name, controller, prefix='', name=None, **kwargs):
         ns = self._get_namespace(name)
         if name:
             ns = ':'.join((ns, name)) if ns else name
         else:
             if ns:
                 ns = "%s:" % ns
+
+        if type(controller) == str:
+            controller = self._import_controller(controller)
+
         pref = '/'.join((prefix, res_name)).replace('///', '/').replace('//', '/')
-        if hasattr(controller, 'list'):
-            self.app.router.add_get(self._get_baseurl("%s/" % pref), controller.list, name='%slist' % ns)
+        if hasattr(controller, 'index'):
+            self.app.router.add_get(self._get_baseurl("%s/" % pref), controller.index, name='%sindex' % ns)
         if hasattr(controller, 'edit_page'):
             self.app.router.add_get(self._get_baseurl("%s/{id:[0-9]+}/" % pref), controller.edit_page, name='%sedit_page' % ns)
         if hasattr(controller, 'edit'):
@@ -94,6 +152,9 @@ class Router(object):
             self.app.router.add_post(self._get_baseurl('%s/add/' % pref), controller.add, name='%sadd' % ns)
         if hasattr(controller, 'delete'):
             self.app.router.add_post(self._get_baseurl('%s/delete/' % pref), controller.delete, name='%sdelete' % ns)
+
+    def root(self, handler, name=None, **kwargs):
+        return self.get('/', handler, name, **kwargs)
 
 def setup_routes(app):
     from config import routes

@@ -1,3 +1,5 @@
+BRAND = 'Aioweb'
+ADMINS = []
 MODULES = [
     'admin',
     'db',

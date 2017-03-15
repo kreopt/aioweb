@@ -10,7 +10,7 @@ setup(name='aioweb',
       author='kreopt',
       author_email='kreopt@gmail.com',
       url='https://github.com/kreopt/aioweb/',
-      packages=find_packages(),
+      packages=find_packages(exclude=tuple('test')),
       include_package_data=True,
       install_requires=[
             'aiohttp',
