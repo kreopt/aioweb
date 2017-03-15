@@ -156,6 +156,7 @@ async def setup(app):
     # setup Jinja2 template renderer
     app_loaders = []
     app_loaders.append(jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")))
+    app_loaders.append(jinja2.PackageLoader("aioweb",  "views/"))
     # for app_name in settings.APPS:
     #     try:
     #         app_loaders.append(jinja2.PackageLoader("app", os.path.join("views", app_name)))

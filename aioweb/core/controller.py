@@ -1,5 +1,6 @@
 import os
 from aiohttp import web
+from aiohttp_jinja2 import APP_KEY
 
 from aioweb.render import render_template
 from aioweb.util import extract_name_from_class, handler_as_coroutine
@@ -11,6 +12,7 @@ class BaseController(object):
         self._controller = extract_name_from_class(self.__class__.__name__, 'Controller')
         self._layout = None
         self._template = None
+        self._defaultLayout = 'no_layout.html'
 
     def use_layout(self, layout):
         self._layout = layout
@@ -19,14 +21,12 @@ class BaseController(object):
         self._template = view
 
     def _render(self, data):
-        if self._layout:
-            return render_template(self._layout, self.request, {'tpl': self._template, 'data': data})
-        else:
-            return render_template(self._template, self.request, data)
+        self.request.app[APP_KEY].globals['controller'] = self
+        return render_template(self._template, self.request, data)
 
     async def _dispatch(self, action, request):
         self.request = request
-        self._layout = None
+        self._layout = self._defaultLayout
         self._template = os.path.join(self._controller, '%s.html' % action)
 
         try:
