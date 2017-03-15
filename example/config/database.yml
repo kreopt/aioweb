@@ -1,3 +1,5 @@
 development:
   driver: sqlite3
   database: db.sqlite3
+
+default: development

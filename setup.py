@@ -22,7 +22,8 @@ setup(name='aioweb',
             'aiofiles',
             'passlib',
             'pycrypto',
-            'orator'
+            'orator',
+            'pyyaml'
       ],
       extras_require={
               'dev': ['aiohttp-devtools', 'aiohttp_debugtoolbar'],

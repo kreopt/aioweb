@@ -1,3 +1,5 @@
+import os
+
 from aiohttp import web
 from orator import DatabaseManager
 from orator.exceptions.orm import ModelNotFound
@@ -6,11 +8,14 @@ from . import settings
 from aiohttp.log import web_logger
 
 from orator import Model
+import yaml
 
 async def init_db(app):
-    db_conf = getattr(settings, 'DATABASES', None)
+    with open(os.path.join(settings.BASE_DIR, 'config/database.yml'), 'r') as stream:
+        conf = yaml.load(stream)
+    db_conf = conf.get(conf.get('default', 'development'))
     if not hasattr(app, 'db') and db_conf:
-        web_logger.warn("database path: %s" % db_conf.get('default')['database'])
+        web_logger.warn("database path: %s" % db_conf['database'])
         db = DatabaseManager(db_conf)
         Model.set_connection_resolver(db)
         setattr(app, 'db', db)
