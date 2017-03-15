@@ -90,7 +90,7 @@ class Router(object):
             handler = getattr(ctrl_inst, '_dispatch')
             return await handler(action, request)
 
-        url = "/%s/%s/" % (controller, action)
+        url = "/%s/%s" % (controller, '' if action == 'index' else '%s/' % action)
 
         return [url, action_handler]
 
