@@ -2,6 +2,7 @@ import asyncio
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
+from aioweb.util import handler_as_coroutine
 from orator.exceptions.orm import ModelNotFound
 from passlib.hash import sha256_crypt
 
@@ -9,20 +10,21 @@ from aiohttp_security import setup as setup_security,  authorized_userid
 from aiohttp_security import SessionIdentityPolicy
 from aiohttp.log import web_logger
 
+import aioweb.core
 from aioweb.auth.models.user import User, AbstractUser
 from aioweb.db import init_db
 
 
-def login_required(login_url='/login/', login_route=''):
+def login_required(login_url='/auth/', login_route=''):
     def wrapper(func):
-        async def wrapped(request, *args):
-            if asyncio.iscoroutinefunction(func):
-                coro = func
+        async def wrapped(p, *args):
+            if isinstance(p, aioweb.core.BaseController):
+                request = p.request
             else:
-                coro = asyncio.coroutine(func)
+                request = p
 
             if request.user.is_authenticated():
-                return await coro(request, *args)
+                return await handler_as_coroutine(func)(p, *args)
             else:
                 if login_route:
                     url = request.app.router[login_route].url()

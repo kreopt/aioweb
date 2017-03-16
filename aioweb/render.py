@@ -64,6 +64,25 @@ class DjangoLoad(Extension):
     def _load(self):
         return ''
 
+class DjangoTrans(Extension):
+    """
+    Implements django's `{% trans %}` tag.
+    """
+    tags = set(['trans'])
+
+    def parse(self, parser):
+        lineno = next(parser.stream).lineno
+        token = parser.stream.expect(lexer.TOKEN_STRING)
+        path = nodes.Const(token.value)
+        call = self.call_method(
+            '_trans',
+            [path],
+            lineno=lineno
+        )
+        return nodes.Output([call])
+
+    def _trans(self, str):
+        return str
 
 class DjangoCsrf(Extension):
     """
@@ -157,15 +176,11 @@ async def setup(app):
     app_loaders = []
     app_loaders.append(jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")))
     app_loaders.append(jinja2.PackageLoader("aioweb",  "views/"))
-    # for app_name in settings.APPS:
-    #     try:
-    #         app_loaders.append(jinja2.PackageLoader("app", os.path.join("views", app_name)))
-    #     except ImportError as e:
-    #         pass
-        # try:
-        #     app_loaders.append(jinja2.PackageLoader("%s" % app_name, 'templates'))
-        # except ImportError:
-        #     pass
+    for app_name in settings.APPS:
+        try:
+            app_loaders.append(jinja2.PackageLoader(app_name, "views"))
+        except ImportError as e:
+            pass
     aiohttp_jinja2.setup(
         app, loader=jinja2.ChoiceLoader(app_loaders), context_processors=procs, extensions=[DjangoStatic, DjangoLoad,
-                                                                                            DjangoCsrf, DjangoUrl])
+                                                                                            DjangoCsrf, DjangoUrl, DjangoTrans])
