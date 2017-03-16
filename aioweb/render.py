@@ -14,7 +14,6 @@ from aioweb.conf import settings
 
 
 def json_response(encoding='utf-8'):
-
     def wrapper(func):
         @functools.wraps(func)
         async def wrapped(*args):
@@ -41,8 +40,11 @@ def json_response(encoding='utf-8'):
 
             response = web.json_response(context, status=status)
             return response
+
         return wrapped
+
     return wrapper
+
 
 class DjangoLoad(Extension):
     """
@@ -64,6 +66,7 @@ class DjangoLoad(Extension):
     def _load(self):
         return ''
 
+
 class DjangoTrans(Extension):
     """
     Implements django's `{% trans %}` tag.
@@ -83,6 +86,7 @@ class DjangoTrans(Extension):
 
     def _trans(self, str):
         return str
+
 
 class DjangoCsrf(Extension):
     """
@@ -133,6 +137,7 @@ class DjangoStatic(Extension):
         else:
             return nodes.Output([call], lineno=lineno)
 
+
 class DjangoUrl(Extension):
     """
     Implements django's `{% ulr %}` tag::
@@ -149,7 +154,6 @@ class DjangoUrl(Extension):
         lineno = next(parser.stream).lineno
         token = parser.stream.expect(lexer.TOKEN_STRING)
         path = nodes.Const(token.value)
-
 
         call = self.call_method('_url', [path], lineno=lineno)
 
@@ -170,12 +174,13 @@ def template_view(tpl_name, **kwargs):
 
     return view
 
+
 async def setup(app):
     procs = [aiohttp_jinja2.request_processor]
     # setup Jinja2 template renderer
     app_loaders = []
     app_loaders.append(jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")))
-    app_loaders.append(jinja2.PackageLoader("aioweb",  "views/"))
+    app_loaders.append(jinja2.PackageLoader("aioweb", "views/"))
     for app_name in settings.APPS:
         try:
             app_loaders.append(jinja2.PackageLoader(app_name, "views"))
@@ -183,4 +188,5 @@ async def setup(app):
             pass
     aiohttp_jinja2.setup(
         app, loader=jinja2.ChoiceLoader(app_loaders), context_processors=procs, extensions=[DjangoStatic, DjangoLoad,
-                                                                                            DjangoCsrf, DjangoUrl, DjangoTrans])
+                                                                                            DjangoCsrf, DjangoUrl,
+                                                                                            DjangoTrans])

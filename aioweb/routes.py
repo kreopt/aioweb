@@ -8,8 +8,6 @@ from aioweb.util import snake_to_camel
 
 class Router(object):
 
-    controllers = {}
-
     def __init__(self, app, name='', prefix='', parent=None):
         self.app = app
         self.name = name
@@ -69,9 +67,9 @@ class Router(object):
 
         ctrl_class = getattr(mod, ctrl_class_name)
 
-        if ctrl_class_name not in Router.controllers:
-            Router.controllers[ctrl_class_name] = ctrl_class(self.app)
-        return Router.controllers[ctrl_class_name]
+        if ctrl_class_name not in self.app.controllers:
+            self.app.controllers[ctrl_class_name] = ctrl_class(self.app)
+        return self.app.controllers[ctrl_class_name]
 
     def _resolve_handler_by_name(self, name):
         try:
@@ -158,4 +156,19 @@ class Router(object):
 
 def setup_routes(app):
     from config import routes
+    setattr(app, 'controllers', {})
+
+    def _import_controller(self, name):
+        ctrl_class_name = snake_to_camel("%s_controller" % name)
+
+        mod = importlib.import_module("app.controllers.%s" % name)
+
+        ctrl_class = getattr(mod, ctrl_class_name)
+
+        if ctrl_class_name not in self.controllers:
+            self.controllers[ctrl_class_name] = ctrl_class(self)
+        return self.controllers[ctrl_class_name]
+
+    setattr(app, 'get_controller', _import_controller)
+
     routes.setup(Router(app))

@@ -2,10 +2,10 @@ import getpass
 
 
 def run():
-    name = input('Enter user name:')
-    mail = input('Enter email:')
-    pass1 = getpass.getpass('Enter password:')
-    pass2 = getpass.getpass('Repeate password:')
+    name = input('Enter user name: ')
+    mail = input('Enter email: ')
+    pass1 = getpass.getpass('Enter password: ')
+    pass2 = getpass.getpass('Repeate password: ')
 
     if pass1 == pass2:
         from aioweb.auth.models.user import User
