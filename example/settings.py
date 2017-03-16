@@ -10,3 +10,8 @@ MODULES = [
     'render',
     'email'
 ]
+
+APPS = [
+    'aioweb.admin',
+    'aioweb.auth',
+]

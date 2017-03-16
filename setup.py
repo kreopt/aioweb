@@ -1,8 +1,13 @@
 #!/usr/bin/env python3
+import os
 
-from setuptools import setup
+from distutils.core import setup
 
 from setuptools import find_packages
+
+here = os.path.abspath(os.path.dirname(__file__))
+with open(os.path.join(here, 'requirements.txt')) as f:
+    requirements = f.readlines()
 
 setup(name='aioweb',
       version='0.1',
@@ -12,19 +17,7 @@ setup(name='aioweb',
       url='https://github.com/kreopt/aioweb/',
       packages=find_packages(exclude=tuple('test')),
       include_package_data=True,
-      install_requires=[
-            'aiohttp',
-            'aiohttp_jinja2',
-            'aiohttp_security',
-            'aioredis',
-            'aiosmtplib',
-            'aiohttp_session',
-            'aiofiles',
-            'passlib',
-            'pycrypto',
-            'orator',
-            'pyyaml'
-      ],
+      install_requires=requirements,
       extras_require={
               'dev': ['aiohttp-devtools', 'aiohttp_debugtoolbar'],
               'test': ['pytest-asyncio'],
