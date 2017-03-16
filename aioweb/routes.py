@@ -14,6 +14,8 @@ class Router(object):
         self.prefix = prefix
         self.parent = parent
         self.routers = []
+        self._currentPrefix = ''
+        self._currentName = ''
 
     def _get_namespace(self, name=None):
         names = []
@@ -107,24 +109,28 @@ class Router(object):
         except Exception as e:
             web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else '**unnamed**', e))
 
+        self._currentName = self._get_namespace(name)
+        self._currentPrefix = url
+        return self
+
 
     def head(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_HEAD, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_HEAD, url, handler, name, **kwargs)
 
     def get(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_GET, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_GET, url, handler, name, **kwargs)
 
     def post(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_POST, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_POST, url, handler, name, **kwargs)
 
     def put(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_PUT, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_PUT, url, handler, name, **kwargs)
 
     def patch(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_PATCH, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_PATCH, url, handler, name, **kwargs)
 
     def delete(self, url, handler=None, name=None, **kwargs):
-        self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
+        return self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
 
     def resource(self, res_name, controller, prefix='', name=None, **kwargs):
         ns = self._get_namespace(name)
@@ -151,8 +157,21 @@ class Router(object):
         if hasattr(controller, 'delete'):
             self.app.router.add_post(self._get_baseurl('%s/delete/' % pref), controller.delete, name='%sdelete' % ns)
 
+        self._currentName = ns
+        self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
+        return self
+
     def root(self, handler, name=None, **kwargs):
         return self.get('/', handler, name, **kwargs)
+
+    def __enter__(self):
+        subrouter = Router(self.app, prefix=self._currentPrefix)
+        self.routers.append(subrouter)
+        return subrouter
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self._currentName = ''
+        self._currentPrefix = ''
 
 def setup_routes(app):
     from config import routes
