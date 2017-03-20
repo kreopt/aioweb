@@ -6,12 +6,14 @@ from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
 from yarl import URL
 
+from aioweb.middleware import setup_middlewares
 from . import routes
 from .conf import settings
 
 class Application(AioApp):
     def __init__(self, *, logger=web_logger, loop=None, router=None, middlewares=(), debug=...):
-        super().__init__(logger=logger, loop=loop, router=router, middlewares=middlewares, debug=debug)
+        super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
+        setup_middlewares(self, middlewares)
         self.modules = set()
 
     async def setup(self):

@@ -187,6 +187,11 @@ async def setup(app):
         except ImportError as e:
             pass
     aiohttp_jinja2.setup(
-        app, loader=jinja2.ChoiceLoader(app_loaders), context_processors=procs, extensions=[DjangoStatic, DjangoLoad,
-                                                                                            DjangoCsrf, DjangoUrl,
-                                                                                            DjangoTrans])
+        app,
+        loader=jinja2.ChoiceLoader(app_loaders),
+        context_processors=procs,
+        trim_blocks=True,
+        lstrip_blocks=True,
+        extensions=[DjangoStatic, DjangoLoad,
+                    DjangoCsrf, DjangoUrl,
+                    DjangoTrans])

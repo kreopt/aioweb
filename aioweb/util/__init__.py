@@ -1,5 +1,7 @@
 import asyncio
+import os
 import re
+import importlib.util
 
 
 def camel_to_snake(text):
@@ -20,3 +22,6 @@ def handler_as_coroutine(handler):
     if not asyncio.iscoroutinefunction(handler):
         return asyncio.coroutine(handler)
     return handler
+
+def package_path(pkg):
+    return os.path.dirname(importlib.util.find_spec(pkg).origin)

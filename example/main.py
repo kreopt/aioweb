@@ -8,13 +8,11 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import asyncio
 import logging
 import settings
-from aioweb.middleware.error_mailer import error_mailer
 import aioweb
 
 async def init(loop, argv):
     # setup application and extensions
     app = aioweb.Application(loop=loop, middlewares=[
-        error_mailer
     ])
 
     await app.setup()

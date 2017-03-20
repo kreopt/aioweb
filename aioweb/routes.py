@@ -4,7 +4,7 @@ from aiohttp import hdrs
 from aiohttp.log import web_logger
 
 from aioweb.util import snake_to_camel
-
+from aioweb.mutistatic import StaticMultidirResource
 
 class Router(object):
 
@@ -92,24 +92,25 @@ class Router(object):
 
         url = "/%s/%s" % (controller, '' if action == 'index' else '%s/' % action)
 
-        return [url, action_handler]
+        return [url, action_handler, name.replace('#', '.')]
 
     def _resolve_handler(self, url, handler=None):
+        gen_name = None
         if handler is None:
-            [url, handler] = self._resolve_handler_by_name(url)
+            [url, handler, gen_name] = self._resolve_handler_by_name(url)
         elif type(handler) == str:
-            [_, handler] = self._resolve_handler_by_name(handler)
-        return url, handler
+            [_, handler, gen_name] = self._resolve_handler_by_name(handler)
+        return url, handler, gen_name
 
     def _add_route(self, method, url, handler=None, name=None, **kwargs):
         try:
-            [url, handler] = self._resolve_handler(url, handler)
-            self.app.router.add_route(method, self._get_baseurl(url), handler, name=self._get_namespace(name),
+            [url, handler, gen_name] = self._resolve_handler(url, handler)
+            self.app.router.add_route(method, self._get_baseurl(url), handler, name=self._get_namespace(name if name else gen_name),
                                       **kwargs)
         except Exception as e:
-            web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else '**unnamed**', e))
+            web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else gen_name, e))
 
-        self._currentName = self._get_namespace(name)
+        self._currentName = self._get_namespace(name if name else gen_name)
         self._currentPrefix = url
         return self
 
@@ -164,8 +165,25 @@ class Router(object):
     def root(self, handler, name=None, **kwargs):
         return self.get('/', handler, name, **kwargs)
 
+    def proxy(self, url=None, is_action=False, name=None):
+        if is_action:
+            [url,_,gen_name] = self._resolve_handler(url)
+        else:
+            gen_name = ''
+        self._currentName = self._get_namespace(name if name else gen_name)
+        self._currentPrefix = self._get_baseurl(url)
+        return self
+
+    def static(self, prefix, search_paths, *args, **kwargs):
+        assert prefix.startswith('/')
+        if prefix.endswith('/'):
+            prefix = prefix[:-1]
+        resource = StaticMultidirResource(prefix, search_paths, *args, **kwargs)
+        self.app.router._reg_resource(resource)
+        return self
+
     def __enter__(self):
-        subrouter = Router(self.app, prefix=self._currentPrefix)
+        subrouter = Router(self.app, prefix=self._currentPrefix, name=self._currentName)
         self.routers.append(subrouter)
         return subrouter
 
