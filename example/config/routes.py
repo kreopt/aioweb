@@ -11,5 +11,6 @@ def setup(router):
         subroute.get('page2#index')
 
     router.static('/static/', [
-        os.path.join(package_path('aioweb'), 'assets')
+        os.path.join(package_path('aioweb'), 'assets'),
+        os.path.join(settings.BASE_DIR, 'app/assets'),
     ])

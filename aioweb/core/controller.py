@@ -22,6 +22,9 @@ class BaseController(object):
     def use_view(self, view):
         self._template = view
 
+    async def before_action(self, request):
+        return {}
+
     def _render(self, data):
         self.request.app[APP_KEY].globals['controller'] = self
         return render_template(self._template, self.request, data)
@@ -37,10 +40,17 @@ class BaseController(object):
             # TODO:
             raise e
 
+        ctx = await handler_as_coroutine(self.before_action)(request)
+
+        if isinstance(ctx, web.Response):
+            return ctx
+
         res = await handler_as_coroutine(action)(request)
 
         if isinstance(res, web.Response):
             return res
+
+        res.update(ctx)
 
         accept = request.headers['accept']
 

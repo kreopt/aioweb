@@ -4,7 +4,7 @@ from aiohttp import hdrs
 from aiohttp.log import web_logger
 
 from aioweb.util import snake_to_camel
-from aioweb.mutistatic import StaticMultidirResource
+from .mutidirstatic import StaticMultidirResource
 
 class Router(object):
 
@@ -103,6 +103,7 @@ class Router(object):
         return url, handler, gen_name
 
     def _add_route(self, method, url, handler=None, name=None, **kwargs):
+        gen_name = ''
         try:
             [url, handler, gen_name] = self._resolve_handler(url, handler)
             self.app.router.add_route(method, self._get_baseurl(url), handler, name=self._get_namespace(name if name else gen_name),

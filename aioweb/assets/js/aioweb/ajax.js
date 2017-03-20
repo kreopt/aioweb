@@ -6,6 +6,10 @@ class Ajax {
         let headers = new Headers();
         if (ajax_header) {
             headers.append('X-Requested-With', 'XMLHttpRequest');
+            let csrfCookie = document.cookie.match(/csrftoken=([\w-]+)/);
+            if (csrfCookie) {
+                headers.append('X-Csrf-Token', csrfCookie[1]);
+            }
         }
         let response = await fetch(form.getAttribute('action'), {
             medhod: 'POST',

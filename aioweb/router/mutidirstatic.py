@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 
 from aiohttp import FileSender
+from aiohttp.log import web_logger
 from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_reqrep import StreamResponse
 from aiohttp.web_urldispatcher import StaticResource, ResourceRoute, PrefixResource
@@ -26,8 +27,9 @@ class StaticMultidirResource(StaticResource):
                     raise ValueError('Not a directory')
                 newdirs.append(directory)
             except (FileNotFoundError, ValueError) as error:
-                raise ValueError(
-                    "No directory exists at '{}'".format(directory)) from error
+                web_logger.warn("No directory exists at '{}'".format(directory))
+                # raise ValueError(
+                #     "No directory exists at '{}'".format(directory)) from error
         self._directories = newdirs
         self._file_sender = FileSender(resp_factory=response_factory,
                                        chunk_size=chunk_size)

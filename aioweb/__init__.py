@@ -7,7 +7,7 @@ from aiohttp.web import Application as AioApp
 from yarl import URL
 
 from aioweb.middleware import setup_middlewares
-from . import routes
+from . import router
 from .conf import settings
 
 class Application(AioApp):
@@ -18,7 +18,7 @@ class Application(AioApp):
 
     async def setup(self):
 
-        routes.setup_routes(self)
+        router.setup_routes(self)
         for mod_name in settings.MODULES:
             try:
                 mod = importlib.import_module(".%s" % mod_name, __name__)
