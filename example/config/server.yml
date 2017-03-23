@@ -4,3 +4,7 @@ development:
 
 production:
   unix: server.sock
+
+common:
+  log: server.log
+  log_level: debug

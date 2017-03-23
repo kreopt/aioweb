@@ -12,9 +12,9 @@ from . import router
 from .conf import settings
 
 class Application(AioApp):
-    def __init__(self, *, logger=web_logger, loop=None, router=None, middlewares=(), debug=...):
+    def __init__(self, *, logger=web_logger, loop=None, router=None, debug=...):
         super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
-        setup_middlewares(self, middlewares)
+        setup_middlewares(self)
         self.modules = set()
 
     async def setup(self):

@@ -8,6 +8,7 @@ MODULES = [
     'email'
 ]
 APPS = []
+MIDDLEWARES = []
 
 STATIC_URL = '/static/'
 

@@ -12,8 +12,7 @@ import aioweb
 
 async def init(loop, argv):
     # setup application and extensions
-    app = aioweb.Application(loop=loop, middlewares=[
-    ])
+    app = aioweb.Application(loop=loop)
 
     await app.setup()
 

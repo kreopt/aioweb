@@ -32,7 +32,7 @@ async def mail_traceback(request):
         print(trace)
 
 
-async def error_mailer(app, handler):
+async def middleware(app, handler):
     async def middleware_handler(request):
         try:
             return await handler_as_coroutine(handler)(request)

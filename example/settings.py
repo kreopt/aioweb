@@ -6,3 +6,6 @@ APPS = [
     'aioweb.admin',
     'aioweb.auth',
 ]
+
+MIDDLEWARES = [
+]
