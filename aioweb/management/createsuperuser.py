@@ -1,7 +1,7 @@
 import getpass
 
 
-def run():
+def run(*args, **kwargs):
     name = input('Enter user name: ')
     mail = input('Enter email: ')
     pass1 = getpass.getpass('Enter password: ')

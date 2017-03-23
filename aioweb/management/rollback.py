@@ -3,7 +3,7 @@ import os
 from aioweb import settings
 
 
-def run(app_name, *args, **kwargs):
+def run(app, app_name, *args, **kwargs):
     if app_name:
         apps = [app_name]
     else:
