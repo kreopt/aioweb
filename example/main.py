@@ -1,7 +1,7 @@
 import sys
 import os
 
-os.environ.setdefault("SETTINGS_MODULE", "settings")
+os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 
@@ -19,7 +19,6 @@ async def init(loop, argv):
 
     return app
 
-
 def main(argv):
     # init logging
     logging.basicConfig(level=logging.DEBUG)
@@ -27,10 +26,6 @@ def main(argv):
     loop = asyncio.get_event_loop()
     app = loop.run_until_complete(init(loop, argv))
     aioweb.run_app(app)
-
-
-def get_app(loop):
-    return init(loop, [])
 
 if __name__ == '__main__':
     main(sys.argv[1:])

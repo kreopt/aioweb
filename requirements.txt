@@ -9,6 +9,5 @@ aiohttp_debugtoolbar
 aiofiles
 passlib
 pytest-asyncio
-pycrypto
 orator
 pyyaml

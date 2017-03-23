@@ -180,7 +180,7 @@ class Router(object):
         if prefix.endswith('/'):
             prefix = prefix[:-1]
         resource = StaticMultidirResource(prefix, search_paths, *args, **kwargs)
-        self.app.router._reg_resource(resource)
+        self.app.router.register_resource(resource)
         return self
 
     def __enter__(self):

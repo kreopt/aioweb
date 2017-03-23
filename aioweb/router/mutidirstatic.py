@@ -1,10 +1,9 @@
 import os
 from pathlib import Path
 
-from aiohttp import FileSender
 from aiohttp.log import web_logger
 from aiohttp.web_exceptions import HTTPNotFound
-from aiohttp.web_reqrep import StreamResponse
+from aiohttp.web_response import StreamResponse
 from aiohttp.web_urldispatcher import StaticResource, ResourceRoute, PrefixResource
 from yarl import unquote, URL
 
@@ -31,9 +30,8 @@ class StaticMultidirResource(StaticResource):
                 # raise ValueError(
                 #     "No directory exists at '{}'".format(directory)) from error
         self._directories = newdirs
-        self._file_sender = FileSender(resp_factory=response_factory,
-                                       chunk_size=chunk_size)
         self._show_index = show_index
+        self._chunk_size = chunk_size
         self._follow_symlinks = follow_symlinks
         self._expect_handler = expect_handler
 

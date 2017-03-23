@@ -2,6 +2,7 @@ import importlib
 import os
 import traceback
 
+import yaml
 from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
 from yarl import URL
@@ -38,13 +39,21 @@ def run_app(app, *,
             print=print, backlog=128, access_log_format=None,
             access_log=access_logger):
     """Run an app locally"""
-    host = getattr(settings, 'HOST', '0.0.0.0')
-    port = getattr(settings, 'PORT', 8080)
-    unix_socket = getattr(settings, 'UNIX_SOCKET', None)
+    app['env'] = os.environ.get('AIOWEB_ENV', 'development')
+    conf = {
+        'host': '0.0.0.0',
+        'port': 8000
+    }
+    with open(os.path.join(settings.BASE_DIR, 'config/server.yml'), 'r') as stream:
+        conf.update(yaml.load(stream).get(app['env'], {}))
+
+    host = conf['host']
+    port = conf['port']
+    unix_socket = conf.get('unix')
 
     if port is None:
         if not ssl_context:
-            port = 8080
+            port = 8000
         else:
             port = 8443
 

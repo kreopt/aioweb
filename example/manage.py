@@ -3,7 +3,7 @@ import importlib
 import os
 import sys
 
-os.environ.setdefault("SETTINGS_MODULE", "settings")
+os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
 
 import aioweb
 
