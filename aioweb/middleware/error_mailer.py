@@ -13,7 +13,7 @@ async def mail_traceback(request):
     trace = traceback.format_exc()
     try:
         # Create a text/plain message
-        await request.post()
+        post = await request.post()
 
         await send_mail(request.app,
                   sender='%s service <noreply@%s>' % (settings.BRAND, request.url.host),
@@ -22,8 +22,8 @@ async def mail_traceback(request):
                   body="%s\n\nmatch:\n%s\n\nPOST:\n%s\n\nGET:\n%s\n\nHEADERS:\n%s" % (
                         trace,
                         request.match_info,
-                        request.POST,
-                        request.GET,
+                        post,
+                        request.query,
                         request.headers
                     ))
 

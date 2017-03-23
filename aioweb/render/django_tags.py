@@ -56,9 +56,14 @@ class DjangoCsrf(Extension):
 
     def parse(self, parser):
         lineno = parser.stream.expect('name:csrf_token').lineno
+        controller = parser.environment.globals.get('controller')
+        if controller:
+            csrf_token = getattr(controller.request, 'csrf_token', '')
+        else:
+            csrf_token = ''
         call = self.call_method(
             '_csrf_token',
-            [nodes.Name('csrf_token', 'load', lineno=lineno)],
+            [csrf_token],#nodes.Name('csrf_token', 'load', lineno=lineno)
             lineno=lineno
         )
         return nodes.Output([nodes.MarkSafe(call)])

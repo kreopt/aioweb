@@ -75,4 +75,4 @@ class StaticMultidirResource(StaticResource):
     def __repr__(self):
         name = "'" + self.name + "'" if self.name is not None else ""
         return "<StaticMultiResource {name} {path} -> [{directory!r}]".format(
-            name=name, path=self._prefix, directory='; '.join(self._directories))
+            name=name, path=self._prefix, directory='; '.join([str(e) for e in self._directories]))

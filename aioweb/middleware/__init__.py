@@ -4,12 +4,14 @@ from aiohttp.log import web_logger
 
 from aioweb.middleware.method_override import middleware as method_override
 from aioweb.middleware.is_ajax import middleware as is_ajax
+from aioweb.middleware.csrf_token import middleware
 
 from aioweb.conf import settings
 
 def setup_middlewares(app):
     app.middlewares.append(method_override)
     app.middlewares.append(is_ajax)
+    app.middlewares.append(csrf_token)
 
     for middleware in settings.MIDDLEWARES:
         try:

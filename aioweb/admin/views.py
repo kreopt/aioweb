@@ -18,7 +18,7 @@ class ModelAdmin(object):
 
     @login_required()
     async def add(self, request):
-        await request.post()
+        post = await request.post()
         inlines = getattr(MODELS[request.match_info['model']].Admin, '__inline__', [])
 
         model = MODELS[request.match_info['model']]
@@ -27,10 +27,10 @@ class ModelAdmin(object):
 
         for inline in inlines:
             iitem = inline[0]()
-            for field in request.POST:
+            for field in post:
                 f = field.split('.')
                 if f[0] == inline[0].__name__:
-                    setattr(iitem, f[1], request.POST[field])
+                    setattr(iitem, f[1], post[field])
 
             try:
                 iitem.save()
@@ -40,10 +40,10 @@ class ModelAdmin(object):
                 })
             setattr(item, inline[1], getattr(iitem, inline[2]))
 
-        for field in request.POST:
+        for field in post:
             f = field.split('.')
             if f[0] == model.__name__:
-                setattr(item, f[1], request.POST[field])
+                setattr(item, f[1], post[field])
         try:
             item.save()
             if request.is_ajax():
@@ -58,22 +58,22 @@ class ModelAdmin(object):
     @login_required()
     async def edit(self, request):
         item = MODELS[request.match_info['model']].find_or_fail(request.match_info['id'])
-        await request.post()
+        post = await request.post()
         inlines = getattr(MODELS[request.match_info['model']].Admin, '__inline__', [])
 
         for inline in inlines:
             iitem = inline[0].find_or_fail(getattr(item, inline[1]))
-            for field in request.POST:
+            for field in post:
                 f = field.split('.')
                 if f[0] == inline[0].__name__ and hasattr(iitem, f[1]):
-                    setattr(iitem, f[1], request.POST[field])
+                    setattr(iitem, f[1], post[field])
             iitem.save()
 
 
-        for field in request.POST:
+        for field in post:
             f = field.split('.')
             if f[0] == MODELS[request.match_info['model']].__name__ and hasattr(item, f[1]):
-                setattr(item, f[1], request.POST[field])
+                setattr(item, f[1], post[field])
         try:
             item.save()
 
