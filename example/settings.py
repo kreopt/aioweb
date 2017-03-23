@@ -8,4 +8,5 @@ APPS = [
 ]
 
 MIDDLEWARES = [
+    'aioweb.middleware.error_mailer'
 ]
