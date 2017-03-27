@@ -3,7 +3,7 @@ import importlib
 from aiohttp import hdrs
 from aiohttp.log import web_logger
 
-from aioweb.util import snake_to_camel
+from aioweb.util import snake_to_camel, extract_name_from_class
 from .mutidirstatic import StaticMultidirResource
 
 class Router(object):
@@ -63,6 +63,8 @@ class Router(object):
             pass
 
     def _import_controller(self, name):
+        if type(name) != str:
+            return name
         ctrl_class_name = snake_to_camel("%s_controller" % name)
 
         mod = importlib.import_module("app.controllers.%s" % name)
@@ -73,26 +75,33 @@ class Router(object):
             self.app.controllers[ctrl_class_name] = ctrl_class(self.app)
         return self.app.controllers[ctrl_class_name]
 
+    def _resolve_action(self, controller, action_name):
+
+        if type(controller) == str:
+            try:
+                ctrl_inst = self._import_controller(controller)
+            except Exception as e:
+                web_logger.warn("Failed to import controller: %s. skip\n reason : %s" % (controller, e))
+                raise e
+        else:
+            ctrl_inst = controller
+
+        async def action_handler(request):
+            handler = getattr(ctrl_inst, '_dispatch')
+            return await handler(action_name, request)
+
+        url = "/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name)
+
+        return [url, action_handler,
+                "%s.%s" % (extract_name_from_class(ctrl_inst.__class__.__name__, 'Controller'), action_name)]
+
     def _resolve_handler_by_name(self, name):
         try:
             [controller, action] = name.split('#')
         except ValueError as e:
             web_logger.warn("invalid action signature: %s. skip" % name)
             raise e
-
-        try:
-            ctrl_inst = self._import_controller(controller)
-        except Exception as e:
-            web_logger.warn("Failed to import controller: %s. skip\n reason : %s" % (controller, e))
-            raise e
-
-        async def action_handler(request):
-            handler = getattr(ctrl_inst, '_dispatch')
-            return await handler(action, request)
-
-        url = "/%s/%s" % (controller, '' if action == 'index' else '%s/' % action)
-
-        return [url, action_handler, name.replace('#', '.')]
+        return self._resolve_action(controller, action)
 
     def _resolve_handler(self, url, handler=None):
         gen_name = None
@@ -134,32 +143,39 @@ class Router(object):
     def delete(self, url, handler=None, name=None, **kwargs):
         return self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
 
+    # def _define_resource_action(self, prefix):
+    #     pass
     def resource(self, res_name, controller, prefix='', name=None, **kwargs):
-        ns = self._get_namespace(name)
-        if name:
-            ns = ':'.join((ns, name)) if ns else name
-        else:
-            if ns:
-                ns = "%s:" % ns
-
-        if type(controller) == str:
-            controller = self._import_controller(controller)
 
         pref = '/'.join((prefix, res_name)).replace('///', '/').replace('//', '/')
+        controller = self._import_controller(controller)
         if hasattr(controller, 'index'):
-            self.app.router.add_get(self._get_baseurl("%s/" % pref), controller.index, name='%sindex' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'index')
+            name = "%s.index" % (name if name else gen_name)
+            self._add_route(hdrs.METH_GET, self._get_baseurl("%s/" % pref),
+                            handler, name=name)
         if hasattr(controller, 'edit_page'):
-            self.app.router.add_get(self._get_baseurl("%s/{id:[0-9]+}/" % pref), controller.edit_page, name='%sedit_page' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'edit_page')
+            name = "%s.edit_page" % (name if name else gen_name)
+            self._add_route(hdrs.METH_GET, self._get_baseurl("%s/{id:[0-9]+}/" % pref), handler, name=name)
         if hasattr(controller, 'edit'):
-            self.app.router.add_post(self._get_baseurl('%s/{id:[0-9]+}/' % pref), controller.edit, name='%sedit' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'edit')
+            name = "%s.edit" % (name if name else gen_name)
+            self._add_route(hdrs.METH_PATCH, self._get_baseurl('%s/{id:[0-9]+}/' % pref), handler, name=name)
         if hasattr(controller, 'add_page'):
-            self.app.router.add_get(self._get_baseurl('%s/add/' % pref), controller.add_page, name='%sadd_page' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'add_page')
+            name = "%s.add_page" % (name if name else gen_name)
+            self._add_route(hdrs.METH_GET, self._get_baseurl('%s/add/' % pref), handler, name=name)
         if hasattr(controller, 'add'):
-            self.app.router.add_post(self._get_baseurl('%s/add/' % pref), controller.add, name='%sadd' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'add')
+            name = "%s.add" % (name if name else gen_name)
+            self._add_route(hdrs.METH_POST, self._get_baseurl('%s/add/' % pref), handler, name=name)
         if hasattr(controller, 'delete'):
-            self.app.router.add_post(self._get_baseurl('%s/delete/' % pref), controller.delete, name='%sdelete' % ns)
+            [url, handler, gen_name] = self._resolve_action(controller, 'delete')
+            name = "%s.delete" % (name if name else gen_name)
+            self._add_route(hdrs.METH_DELETE, self._get_baseurl('%s/delete/' % pref), handler, name=name)
 
-        self._currentName = ns
+        self._currentName = name
         self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
         return self
 
