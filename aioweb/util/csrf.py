@@ -19,7 +19,7 @@ CSRF_ALLOWED_CHARS = string.ascii_letters + string.digits
 
 
 def _get_new_csrf_string():
-    return ''.join([random.choice(c) for c in range(CSRF_TOKEN_LENGTH)])
+    return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_SECRET_LENGTH)])
 
 
 def _salt_cipher_secret(secret):
@@ -55,7 +55,7 @@ def make_csrf_token(secret=None):
 def sanitize_token(token):
     # Allow only ASCII alphanumerics
     if not re.match('[a-zA-Z0-9]{%s}' % CSRF_TOKEN_LENGTH, token):
-        return make_csrf_token()
+        return None
     elif len(token) == CSRF_TOKEN_LENGTH:
         return token
     elif len(token) == CSRF_SECRET_LENGTH:
@@ -66,7 +66,7 @@ def sanitize_token(token):
         # different code paths in the checks, although that might be a tad more
         # efficient.
         return _salt_cipher_secret(token)
-    return make_csrf_token()
+    return None
 
 
 def compare_salted_tokens(request_csrf_token, csrf_token):

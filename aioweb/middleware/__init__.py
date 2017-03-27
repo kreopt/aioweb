@@ -4,7 +4,7 @@ from aiohttp.log import web_logger
 
 from aioweb.middleware.method_override import middleware as method_override
 from aioweb.middleware.is_ajax import middleware as is_ajax
-from aioweb.middleware.csrf_token import middleware
+from aioweb.middleware.csrf_token import middleware as csrf_token
 
 from aioweb.conf import settings
 

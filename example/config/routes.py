@@ -8,6 +8,7 @@ def setup(router):
     router.get('test#test')
     with router.proxy('test#index', is_action=True, name="test") as subroute:
         subroute.get('page1#index')
+        subroute.post('/page1/', 'page1#csrf')
         subroute.get('page2#index')
 
     router.static('/static/', [

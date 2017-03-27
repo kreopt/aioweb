@@ -32,7 +32,8 @@ def get_token(request):
 async def middleware(app, handler):
     async def middleware_handler(request):
         reason = None
-        if request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+        need_refresh = False
+        if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
             check_ok = True
         else:
             check_ok = False
@@ -48,15 +49,20 @@ async def middleware(app, handler):
                 else:
                     reason = REASON_BAD_TOKEN
             else:
+                need_refresh = True
                 reason = REASON_NO_CSRF_COOKIE
 
         setattr(request, 'csrf_token', get_token(request))
 
         if check_ok:
             response = await handler_as_coroutine(handler)(request)
-            response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
-            response.headers[CSRF_HEADER_NAME] = request.csrf_token
+            if not request.cookies.get(CSRF_COOKIE_NAME) or need_refresh:
+                response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
+                response.headers[CSRF_HEADER_NAME] = request.csrf_token
             return response
         else:
-            raise web.HTTPForbidden(reason=reason)
+            response = web.HTTPForbidden(reason=reason)
+            response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
+            response.headers[CSRF_HEADER_NAME] = request.csrf_token
+            raise response
     return middleware_handler

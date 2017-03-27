@@ -4,6 +4,7 @@ from jinja2 import lexer, nodes
 from jinja2.ext import Extension
 
 from aioweb.conf import settings
+from aioweb.middleware.csrf_token import CSRF_FIELD_NAME
 
 
 class DjangoLoad(Extension):
@@ -63,7 +64,7 @@ class DjangoCsrf(Extension):
             csrf_token = ''
         call = self.call_method(
             '_csrf_token',
-            [csrf_token],#nodes.Name('csrf_token', 'load', lineno=lineno)
+            [nodes.Const(csrf_token)],#nodes.Name('csrf_token', 'load', lineno=lineno)
             lineno=lineno
         )
         return nodes.Output([nodes.MarkSafe(call)])
@@ -72,7 +73,7 @@ class DjangoCsrf(Extension):
         if not csrf_token or csrf_token == 'NOTPROVIDED':
             return ''
         else:
-            return '<input type="hidden" name="csrfmiddlewaretoken" value="{}" />'.format(csrf_token)
+            return '<input type="hidden" name="{}" value="{}" />'.format(CSRF_FIELD_NAME, csrf_token)
 
 
 class DjangoStatic(Extension):

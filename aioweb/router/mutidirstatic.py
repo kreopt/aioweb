@@ -4,6 +4,7 @@ from pathlib import Path
 from aiohttp.log import web_logger
 from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_response import StreamResponse
+from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_urldispatcher import StaticResource, ResourceRoute, PrefixResource
 from yarl import unquote, URL
 
@@ -65,7 +66,7 @@ class StaticMultidirResource(StaticResource):
 
         # on opening a dir, load it's contents if allowed
         if filepath.is_file():
-            ret = await self._file_sender.send(request, filepath)
+            ret = FileResponse(filepath, chunk_size=self._chunk_size)
         else:
             raise HTTPNotFound
 
