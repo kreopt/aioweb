@@ -4,7 +4,8 @@ from aioweb import settings
 
 
 def run(migration_name, *args, **kwargs):
-    os.mkdir(os.path.join(settings.BASE_DIR, 'db/migrations/'))
+    os.makedirs(os.path.join(settings.BASE_DIR, 'db/migrations/'), exist_ok=True)
+
     os.system("orator make:migration %(name)s -p %(base)s/db/migrations/ %(args)s" % {
         'name': migration_name,
         'base': settings.BASE_DIR,
