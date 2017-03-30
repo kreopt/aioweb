@@ -1,20 +1,23 @@
 import importlib
 
-from aiohttp import hdrs
+from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
-from aioweb.util import snake_to_camel
+from aioweb.router.context import DefaultContext, AuthenticatedContext
+from aioweb.util import snake_to_camel, handler_as_coroutine
 from .mutidirstatic import StaticMultidirResource
+
 
 class Router(object):
 
-    def __init__(self, app, name='', prefix='', parent=None, package='app'):
+    def __init__(self, app, name='', prefix='', parent=None, package='app', context=DefaultContext()):
         self.app = app
         self.name = name
         self.prefix = prefix
         self.parent = parent
         self.package = package
         self.view_prefix = ''
+        self.context = context
         self.routers = []
         self._currentPrefix = ''
         self._currentName = ''
@@ -50,27 +53,6 @@ class Router(object):
         prefixes.reverse()
         return '/'.join(prefixes).replace('///', '/').replace('//', '/')
 
-    def use(self, url, app_name, name=''):
-        oldName = self._currentName
-        oldPrefix = self._currentPrefix
-        oldPackage = self._currentPackage
-        self._currentName = name
-        self._currentPrefix = url
-        self._currentPackage = app_name
-        with self as subrouter:
-            try:
-                mod = importlib.import_module("%s.config.router" % app_name)
-                setup = getattr(mod, 'setup')
-                setup(subrouter)
-            except AttributeError:
-                web_logger.warn("no setup method in %s router" % app_name)
-            except ImportError:
-                web_logger.warn("no routes for app %s" % app_name)
-
-        self._currentName = oldName
-        self._currentPrefix = oldPrefix
-        self._currentPackage = oldPackage
-
     def _import_controller(self, name):
         ctrl_class_name = snake_to_camel("%s_controller" % name)
 
@@ -99,7 +81,10 @@ class Router(object):
 
         async def action_handler(request):
             handler = getattr(ctrl_inst, '_dispatch')
-            return await handler(action, request)
+            if self.context.check(request):
+                return await handler(action, request)
+            else:
+                raise web.HTTPForbidden(reason=self.context.reason)
 
         url = "/%s/%s" % (controller, '' if action == 'index' else '%s/' % action)
 
@@ -111,6 +96,15 @@ class Router(object):
             [url, handler, gen_name] = self._resolve_handler_by_name(url)
         elif type(handler) == str:
             [_, handler, gen_name] = self._resolve_handler_by_name(handler)
+        elif callable(handler):
+            async def wrapped_handler(request):
+                # TODO: custom responses for contexts. For example redirect to login page in AuthContext
+                if self.context.check(request):
+                    return await handler_as_coroutine(handler)(request)
+                else:
+                    raise web.HTTPForbidden(reason=self.context.reason)
+            handler = wrapped_handler
+
         return url, handler, gen_name
 
     def _add_route(self, method, url, handler=None, name=None, **kwargs):
@@ -163,12 +157,14 @@ class Router(object):
             self.app.router.add_get(self._get_baseurl("%s/{id:[0-9]+}/" % pref), controller.edit_page, name='%sedit_page' % ns)
         if hasattr(controller, 'edit'):
             self.app.router.add_post(self._get_baseurl('%s/{id:[0-9]+}/' % pref), controller.edit, name='%sedit' % ns)
+            self.app.router.add_patch(self._get_baseurl('%s/{id:[0-9]+}/' % pref), controller.edit, name='%sedit2' % ns)
         if hasattr(controller, 'add_page'):
-            self.app.router.add_get(self._get_baseurl('%s/add/' % pref), controller.add_page, name='%sadd_page' % ns)
+            self.app.router.add_get(self._get_baseurl('%s/new/' % pref), controller.add_page, name='%sadd_page' % ns)
         if hasattr(controller, 'add'):
-            self.app.router.add_post(self._get_baseurl('%s/add/' % pref), controller.add, name='%sadd' % ns)
+            self.app.router.add_post(self._get_baseurl('%s/' % pref), controller.add, name='%sadd' % ns)
         if hasattr(controller, 'delete'):
-            self.app.router.add_post(self._get_baseurl('%s/delete/' % pref), controller.delete, name='%sdelete' % ns)
+            self.app.router.add_post(self._get_baseurl('%s/{id:[0-9]+}/delete/' % pref), controller.delete, name='%sdelete' % ns)
+            self.app.router.add_delete(self._get_baseurl('%s/{id:[0-9]+}/' % pref), controller.delete, name='%sdelete2' % ns)
 
         self._currentName = ns
         self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
@@ -196,10 +192,37 @@ class Router(object):
         self.app.router.register_resource(resource)
         return self
 
-    def __enter__(self):
-        subrouter = Router(self.app, prefix=self._currentPrefix, name=self._currentName, package=self._currentPackage)
+    def constrained(self, context=DefaultContext()):
+        subrouter = Router(self.app, prefix=self._currentPrefix,
+                           name=self._currentName,
+                           package=self._currentPackage,
+                           context=context)
         self.routers.append(subrouter)
         return subrouter
+
+    def use(self, url, app_name, name=''):
+        oldName = self._currentName
+        oldPrefix = self._currentPrefix
+        oldPackage = self._currentPackage
+        self._currentName = name if name else app_name
+        self._currentPrefix = url
+        self._currentPackage = app_name
+        with self as subrouter:
+            try:
+                mod = importlib.import_module("%s.config.routes" % app_name)
+                setup = getattr(mod, 'setup')
+                setup(subrouter)
+            except AttributeError:
+                web_logger.warn("no setup method in %s router" % app_name)
+            except ImportError as e:
+                web_logger.warn("no routes for app %s" % app_name)
+
+        self._currentName = oldName
+        self._currentPrefix = oldPrefix
+        self._currentPackage = oldPackage
+
+    def __enter__(self):
+        return self.constrained(self.context)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._currentName = ''

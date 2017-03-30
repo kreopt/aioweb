@@ -1,5 +1,6 @@
 import os
 from aioweb.conf import settings
+from aioweb.router import AuthenticatedContext
 from aioweb.util import package_path
 
 
@@ -11,7 +12,8 @@ def setup(router):
         subroute.post('/page1/', 'page1#csrf')
         subroute.get('page2#index')
 
-    router.use('/admin/', 'aioweb.admin')
+    with router.constrained(context=AuthenticatedContext()) as auth_router:
+        auth_router.use('/admin/', 'aioweb.admin')
 
     router.static('/static/', [
         os.path.join(package_path('aioweb'), 'assets'),
