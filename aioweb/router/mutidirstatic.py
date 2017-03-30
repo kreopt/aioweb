@@ -1,10 +1,10 @@
 import os
 from pathlib import Path
 
-from aiohttp import FileSender
 from aiohttp.log import web_logger
 from aiohttp.web_exceptions import HTTPNotFound
-from aiohttp.web_reqrep import StreamResponse
+from aiohttp.web_response import StreamResponse
+from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_urldispatcher import StaticResource, ResourceRoute, PrefixResource
 from yarl import unquote, URL
 
@@ -31,9 +31,8 @@ class StaticMultidirResource(StaticResource):
                 # raise ValueError(
                 #     "No directory exists at '{}'".format(directory)) from error
         self._directories = newdirs
-        self._file_sender = FileSender(resp_factory=response_factory,
-                                       chunk_size=chunk_size)
         self._show_index = show_index
+        self._chunk_size = chunk_size
         self._follow_symlinks = follow_symlinks
         self._expect_handler = expect_handler
 
@@ -67,7 +66,7 @@ class StaticMultidirResource(StaticResource):
 
         # on opening a dir, load it's contents if allowed
         if filepath.is_file():
-            ret = await self._file_sender.send(request, filepath)
+            ret = FileResponse(filepath, chunk_size=self._chunk_size)
         else:
             raise HTTPNotFound
 
@@ -77,4 +76,4 @@ class StaticMultidirResource(StaticResource):
     def __repr__(self):
         name = "'" + self.name + "'" if self.name is not None else ""
         return "<StaticMultiResource {name} {path} -> [{directory!r}]".format(
-            name=name, path=self._prefix, directory='; '.join(self._directories))
+            name=name, path=self._prefix, directory='; '.join([str(e) for e in self._directories]))

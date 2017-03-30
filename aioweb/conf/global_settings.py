@@ -8,6 +8,9 @@ MODULES = [
     'email'
 ]
 APPS = []
+MIDDLEWARES = [
+    'aioweb.middleware.error_mailer'
+]
 
 STATIC_URL = '/static/'
 

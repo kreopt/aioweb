@@ -53,6 +53,7 @@ async def authenticate(request, username, password):
         user = User.where_raw('username=? and disabled=?', [username, False]).first_or_fail()
         if sha256_crypt.verify(password, user.password):
             setattr(user, 'is_authenticated', lambda: True)
+            # TODO: reset csrf
             setattr(request, 'user', user)
         else:
             setattr(request, 'user', AbstractUser())

@@ -11,10 +11,12 @@ class BaseController(object):
 
     def __init__(self, app):
         self.app = app
+        self.search_path = ''
         self._controller = extract_name_from_class(self.__class__.__name__, 'Controller')
         self._layout = None
         self._template = None
         self._defaultLayout = BaseController.EMPTY_LAYOUT
+        self.publicActions = None
 
     def use_layout(self, layout):
         self._layout = layout
@@ -30,9 +32,10 @@ class BaseController(object):
         return render_template(self._template, self.request, data)
 
     async def _dispatch(self, action, request):
+
         self.request = request
         self._layout = self._defaultLayout if not request.is_ajax() else BaseController.EMPTY_LAYOUT
-        self._template = os.path.join(self._controller, '%s.html' % action)
+        self._template = os.path.join(self.search_path, self._controller, '%s.html' % action)
 
         try:
             action = getattr(self, action)

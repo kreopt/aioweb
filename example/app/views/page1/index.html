@@ -1,4 +1,8 @@
 {% extends controller._layout %}
 {% block content %}
+    <form method="post">
+    {% csrf_token %}
+    <button>ok</button>
+    </form>
     page1
 {% endblock %}

@@ -11,7 +11,7 @@ import os
 import time
 from . import global_settings
 
-ENVIRONMENT_VARIABLE = "SETTINGS_MODULE"
+ENVIRONMENT_VARIABLE = "AIOWEB_SETTINGS_MODULE"
 
 
 class ImproperlyConfigured(BaseException):

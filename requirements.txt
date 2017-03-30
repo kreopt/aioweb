@@ -1,4 +1,4 @@
-aiohttp
+aiohttp=2.0
 aiohttp_jinja2
 aiohttp_security
 aioredis
@@ -9,6 +9,5 @@ aiohttp_debugtoolbar
 aiofiles
 passlib
 pytest-asyncio
-pycrypto
 orator
 pyyaml
