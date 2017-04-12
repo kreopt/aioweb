@@ -1,0 +1,15 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+    <section id="page_container">
+        {% block content %}{% endblock %}
+    </section>
+    <script src="{% static 'js/aioweb/util.js' %}"></script>
+    <script src="{% static 'js/aioweb/ajax.js' %}"></script>
+</body>
+</html>

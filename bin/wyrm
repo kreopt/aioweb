@@ -1,0 +1,4 @@
+#!/usr/bin/env python3
+import wyrm.wyrm
+import sys
+wyrm.wyrm.execute(sys.argv)
