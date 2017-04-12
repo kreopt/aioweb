@@ -1,6 +1,7 @@
 import os, sys
 import shutil
 aliases=["n"]
+brief="create a new project"
 def usage(argv0):
     print("Usage: {} new project_name [dirname]".format(argv0))
 

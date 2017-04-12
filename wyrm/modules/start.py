@@ -2,7 +2,7 @@ import sys
 import os
 
 
-
+brief="start the aioweb server"
 aliases=["s", "runserver"]
 def execute(argv, argv0, engine):
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
