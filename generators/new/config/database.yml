@@ -1,6 +1,6 @@
 databases:
   development:
-    driver: sqlite3
-    database: db/db.sqlite3
+    driver: sqlite
+    database: development.sqlite3
 
   default: development
