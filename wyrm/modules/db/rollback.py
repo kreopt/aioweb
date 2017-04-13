@@ -13,6 +13,8 @@ def execute(argv, argv0, engine):
     from aioweb import settings
     sys.path.append( os.getcwd() )
 
+    if '-h' in argv or '--help' in argv:
+        usage(argv0)
     oldcwd = os.getcwd()
     try:
         os.mkdir(os.path.join(settings.BASE_DIR, 'db'))
