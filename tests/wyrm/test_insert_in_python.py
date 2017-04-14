@@ -86,9 +86,20 @@ class insert_in_python(unittest.TestCase):
         f.close()
         s.assertTrue( res == ok )
 
-    def test_zend_of_block_insertion2(s):
+    def test_zignore_pass(s):
+        lib.insert_in_python(s.file_path, ["AcidTest", "def down", "with"], ["#for i in [1,1,2,3]:", "#  print(i)" ], ignore_pass=True)
+
+        f=open(s.file_path)
+        res= f.read()
+        f.close()
+        f=open( os.path.join( s.files_dir, "insert_in_python_r9.py") )
+        ok=f.read()
+        f.close()
+        s.assertTrue( res == ok )
+
+    def test_end_of_block_insertion2(s):
         lib.insert_in_python(s.file_path, ["AcidTest", "def up", "with"], ["for i in [1,1,2,3]:", "  print(i)" ], True)
-        lib.insert_in_python(s.file_path, ["AcidTest", "def up", "with"], ["self.string('weight')" ], True)
+        lib.insert_in_python(s.file_path, ["AcidTest", "def up", "with"], ["self.string('weight')" ], in_end=True)
 
         f=open(s.file_path)
         res= f.read()

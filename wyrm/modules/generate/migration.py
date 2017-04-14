@@ -26,8 +26,7 @@ def execute(argv, argv0, engine):
             usage(argv0)
         additional_fields.append( (field_type, field_name) )
 
-    table, model_name = lib.names(argv[0], ["table", "model"])
-
+    table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
     migration_name = argv[1]
     model_file="app/models/{}.py".format(model_name)
     if not os.path.exists(model_file):
@@ -55,4 +54,7 @@ def execute(argv, argv0, engine):
     print("patching " + file_name)
     lib.insert_in_python(file_name, ["def up", "as table:"], ["table.{}('{}').nullable()".format(tp, name) for tp,name in additional_fields ] )
     lib.insert_in_python(file_name, ["def down", "as table:"], ["table.drop_column('{}')".format(name) for tp,name in additional_fields ] )
+    if os.path.exists(model_file):
+        print("patching " + model_file)
+        lib.insert_in_python(model_file, ["class"], ["# {}{} - {}".format(name, (25-len(name) )*' ', tp) for tp,name in additional_fields ], ignore_pass=True)
 

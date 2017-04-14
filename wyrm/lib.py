@@ -24,7 +24,7 @@ def get_template(subpath):
     if os.path.exists( path ): return path 
     return None
 
-def insert_in_python(file_name, search, code_lines, in_end=False):
+def insert_in_python(file_name, search, code_lines, in_end=False, ignore_pass=False):
     f= open(file_name, "r")
     lines=f.readlines() 
     f.close()
@@ -62,7 +62,7 @@ def insert_in_python(file_name, search, code_lines, in_end=False):
             if n_indent == base_indent:
                 pass
             elif not brief_started:
-                if lines[nn].strip() == 'pass':
+                if not ignore_pass and lines[nn].strip() == 'pass':
                     del lines[nn]
                     nn-1
                 if not in_end: nn-=1

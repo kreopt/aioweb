@@ -27,7 +27,7 @@ def execute(argv, argv0, engine):
             usage(argv0)
         additional_fields.append( (field_type, field_name) )
 
-    table, model_name = lib.names(argv[0], ["table", "model"])
+    table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
     migration_name = "create_{}_table".format(table)
     model_file="app/models/{}.py".format(model_name)
     rewrite = True
@@ -54,5 +54,7 @@ def execute(argv, argv0, engine):
         os.system("orator make:migration {} -p db/migrations/ -C -t {}".format(migration_name, table))
         file_name = os.path.join( migrations_dir, [f for f in sorted( os.listdir(migrations_dir) ) if migration_name in f][-1] )
         print("patching " + file_name)
-        lib.insert_in_python(file_name, ["def up", "as table:"], ["table.{}('{}').nullable()".format(tp, name) for tp,name in additional_fields ], True)
+        lib.insert_in_python(file_name, ["def up", "as table:"], ["table.{}('{}').nullable()".format(tp, name) for tp,name in additional_fields ], in_end=True)
+        print("patching " + model_file)
+        lib.insert_in_python(model_file, ["class"], ["# {}{} - {}".format(name, (25-len(name) )*' ', tp) for tp,name in additional_fields ], ignore_pass=True)
 
