@@ -35,7 +35,7 @@ def execute(argv, argv0, engine):
             sys.exit(1)
 
     try: migrations = [os.path.join(migrations_dir, f) for f in os.listdir( migrations_dir ) if migration_name in f]
-    except FileNotFoundError: rc=[]
+    except FileNotFoundError: migrations=[]
     rc=None
     for m in migrations:
         if rc not in ['a', 'all']: rc= lib.ask("\n{} already exists.\nDo you wanna remove it before create migration?".format(m), ['y', 'n', 'e', 'exit', 'all', 'a', 'skip all'])
