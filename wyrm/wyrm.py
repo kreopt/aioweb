@@ -28,6 +28,8 @@ if os.path.exists(os.path.abspath("settings.py")):
             else:
                 modules += mods
     commands["g"] = "generate"
+    commands["d"] = "destroy"
+    commands["delete"] = "destroy"
 
 for module in modules:
     try:

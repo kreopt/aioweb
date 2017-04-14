@@ -1,4 +1,5 @@
 import os, sys, re
+import inflection
 vanila_dir="/usr/share/aioweb/generators"
 def ask(question, answers=["y", "n"]):
     while True:
@@ -8,7 +9,14 @@ def ask(question, answers=["y", "n"]):
         else:
             print("You bastard gimme a correct answer")
 
-    pass
+def names(word, format=[]):
+    ret = {}
+    ret["table"] = inflection.tableize(word)
+    ret["model"] = inflection.singularize( ret["table"] )
+    ret["class"] = inflection.camelize( ret["model"] )
+    if not format: return ret
+    return [ret[k] for k in format]
+
 def get_template(subpath):
     path=os.path.abspath(subpath)
     if os.path.exists( path ): return path 

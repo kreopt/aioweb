@@ -9,7 +9,6 @@ def usage(argv0):
 aliases=['m']
 def execute(argv, argv0, engine):
     import lib
-    import inflection
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
     migrations_dir = os.path.abspath( os.path.join(settings.BASE_DIR, 'db/migrations') )
@@ -28,9 +27,8 @@ def execute(argv, argv0, engine):
             usage(argv0)
         additional_fields.append( (field_type, field_name) )
 
-    table = inflection.tableize(argv[0])
+    table, model_name = lib.names(argv[0], ["table", "model"])
     migration_name = "create_{}_table".format(table)
-    model_name=inflection.singularize( table )
     model_file="app/models/{}.py".format(model_name)
     rewrite = True
     if os.path.exists(model_file):
