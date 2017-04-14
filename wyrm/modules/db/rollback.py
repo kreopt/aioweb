@@ -12,6 +12,7 @@ def execute(argv, argv0, engine):
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
     sys.path.append( os.getcwd() )
+    environment = os.getenv("AIOWEB_ENV", "development")
 
     if '-h' in argv or '--help' in argv:
         usage(argv0)
@@ -29,14 +30,16 @@ def execute(argv, argv0, engine):
         app = argv[0]
         print("[ %s ]" % app)
         print("%(egg)s/migrations/" % {'egg': os.path.dirname(importlib.util.find_spec(app).origin)})
-        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s/migrations/" % {
+        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
+            'environment': environment,
             'base': settings.BASE_DIR,
             'egg': os.path.dirname(importlib.util.find_spec(app).origin)
         })
     else:
         print("[ app ]")
 
-        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(base)s/db/migrations/" % {
+        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
+            'environment': environment,
             'base': settings.BASE_DIR
         })
     os.chdir(oldcwd)
