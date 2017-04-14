@@ -15,17 +15,9 @@ def execute(argv, argv0, engine):
 
     sys.path.append( os.getcwd() )
 
-    additional_fields=[]
     if len(argv) == 0 or '-h' in argv or '--help' in argv or argv[0].startswith('-'):
         usage(argv0)
-    for field in argv[1:]:
-        try:
-            field_name, field_type = field.split(':')
-            if not field_type:
-                usage(argv0)
-        except:
-            usage(argv0)
-        additional_fields.append( (field_type, field_name) )
+    additional_fields = lib.get_fields_from_argv(argv[1:], usage, argv0)
 
     table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
     migration_name = "create_{}_table".format(table)
@@ -57,4 +49,7 @@ def execute(argv, argv0, engine):
         lib.insert_in_python(file_name, ["def up", "as table:"], ["table.{}('{}').nullable()".format(tp, name) for tp,name in additional_fields ], in_end=True)
         print("patching " + model_file)
         lib.insert_in_python(model_file, ["class"], ["# {}{} - {}".format(name, (25-len(name) )*' ', tp) for tp,name in additional_fields ], ignore_pass=True)
+
+    print("generating factory")
+    engine["commands"]["generate"]["test"]["factory"](argv, argv0, engine)
 

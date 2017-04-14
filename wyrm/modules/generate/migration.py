@@ -7,7 +7,6 @@ def usage(argv0):
     sys.exit(1)
 
 aliases=['mg']
-additional_fields=[]
 def execute(argv, argv0, engine):
     import lib
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
@@ -17,14 +16,7 @@ def execute(argv, argv0, engine):
     sys.path.append( os.getcwd() )
     if len(argv) <= 1 or '-h' in argv or '--help' in argv:
         usage(argv0)
-    for field in argv[2:]:
-        try:
-            field_name, field_type = field.split(':')
-            if not field_type:
-                usage(argv0)
-        except:
-            usage(argv0)
-        additional_fields.append( (field_type, field_name) )
+    additional_fields = lib.get_fields_from_argv(argv[2:], usage, argv0)
 
     table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
     migration_name = argv[1]

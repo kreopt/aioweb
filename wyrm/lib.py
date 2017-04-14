@@ -24,6 +24,18 @@ def get_template(subpath):
     if os.path.exists( path ): return path 
     return None
 
+def get_fields_from_argv(argv, usage, argv0):
+    ret=[]
+    for field in argv:
+        try:
+            field_name, field_type = field.split(':')
+            if not field_type:
+                usage(argv0)
+        except:
+            usage(argv0)
+        ret.append( (field_type, field_name) )
+    return ret
+
 def insert_in_python(file_name, search, code_lines, in_end=False, ignore_pass=False):
     f= open(file_name, "r")
     lines=f.readlines() 
