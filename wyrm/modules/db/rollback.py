@@ -30,7 +30,7 @@ def execute(argv, argv0, engine):
         app = argv[0]
         print("[ %s ]" % app)
         print("%(egg)s/migrations/" % {'egg': os.path.dirname(importlib.util.find_spec(app).origin)})
-        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
+        os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
             'environment': environment,
             'base': settings.BASE_DIR,
             'egg': os.path.dirname(importlib.util.find_spec(app).origin)
@@ -38,7 +38,7 @@ def execute(argv, argv0, engine):
     else:
         print("[ app ]")
 
-        os.system("orator migrate:rollback -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
+        os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
             'environment': environment,
             'base': settings.BASE_DIR
         })
