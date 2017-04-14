@@ -14,10 +14,9 @@ modules = []
 modules_dir= os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")
 briefs = {}
 
-modules=['new']
+modules=[]
 if os.path.exists(os.path.abspath("settings.py")):
-    modules_dir= os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")
-    sys.path.append( modules_dir )
+    #sys.path.append( modules_dir )
     for root, subdirs, files in os.walk(modules_dir):
         mods = [ f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__") ]
         if mods:
@@ -30,6 +29,18 @@ if os.path.exists(os.path.abspath("settings.py")):
     commands["g"] = "generate"
     commands["d"] = "destroy"
     commands["delete"] = "destroy"
+else: 
+    modules=['new']
+    sys.path.append( modules_dir )
+    for root, subdirs, files in os.walk(os.path.join(modules_dir, "help")):
+        mods = [ f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__") ]
+        if mods:
+            r = root.replace(modules_dir, '').replace('/', '.')
+            if r.startswith('.'): r = r[1:]
+            if r:
+                modules += [r+'.' + module for module in mods]
+            else:
+                modules += mods
 
 for module in modules:
     try:
@@ -64,12 +75,14 @@ def print_cmd(co, n=1, addr=[]):
             aliases = [a for a in co.keys() if co[a] == k]
             print("  "*n+ ", ".join([k]+aliases))
             print_cmd(co[k], n+1, addr+[k])
+            print("")
         elif type(co[k]) != str:
             aliases = [a for a in co.keys() if co[a] == k]
             ln = "  "*n+ ", ".join([k]+aliases)
             ln+=' '*(30-len(ln))
             ln+=briefs['.'.join(addr+[k])]
             print(ln)
+
 def usage(argv0):
     print("Usage: " + argv0 + " <command> [-h|--help] [args]")
     print("")

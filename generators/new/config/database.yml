@@ -2,5 +2,8 @@ databases:
   development:
     driver: sqlite
     database: development.sqlite3
+  test:
+    driver: sqlite
+    database: test.sqlite3
 
   default: development
