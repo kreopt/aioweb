@@ -3,7 +3,7 @@ import os
 
 brief="delete the model and all model's migrations"
 def usage(argv0):
-    print("Usage: {} delete model MODEL_NAME".format(argv0))
+    print("Usage: {} destroy model MODEL_NAME".format(argv0))
     sys.exit(1)
 
 aliases=['m']
