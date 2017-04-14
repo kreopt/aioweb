@@ -32,4 +32,6 @@ def execute(argv, argv0, engine):
         if sr:
             print("delete " + file_path)
             os.unlink( file_path )
+    print("destroying factory")
+    engine["commands"]["destroy"]["test"]["factory"](argv, argv0, engine)
 

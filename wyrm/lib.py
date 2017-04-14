@@ -15,7 +15,8 @@ def names(word, format=[]):
     ret["model"] = inflection.singularize( ret["table"] )
     ret["class"] = inflection.camelize( ret["model"] )
     if not format: return ret
-    return [ret[k] for k in format]
+    ret= [ret[k] for k in format]
+    return ret[0] if len(ret)==1 else ret
 
 def get_template(subpath):
     path=os.path.abspath(subpath)

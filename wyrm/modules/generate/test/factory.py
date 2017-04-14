@@ -6,7 +6,6 @@ def usage(argv0):
     print("Usage: {} generate factory MODEL_NAME [FIELD_NAME:FIELD_TYPE] [FIELD_NAME:FIELD_TYPE] [...]".format(argv0))
     sys.exit(1)
 
-aliases=['m']
 def execute(argv, argv0, engine):
     if not argv:
         usage(argv0)

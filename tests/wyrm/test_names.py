@@ -13,6 +13,9 @@ class names(unittest.TestCase):
     def test_with_format(s):
         word = "super_users"
         s.assertTrue(lib.names(word, ["class", "model"]) == ["SuperUser", "super_user"])
+    def test_with_one_format(s):
+        word = "super_users"
+        s.assertTrue(lib.names(word, ["model"]) == "super_user")
 
 if __name__ == '__main__':
     unittest.main()
