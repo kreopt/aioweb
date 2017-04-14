@@ -1,7 +1,7 @@
 import sys
 import os
 
-brief="delete the model and all model's migrations"
+brief="delete a factory"
 def usage(argv0):
     print("Usage: {} destroy factory MODEL_NAME".format(argv0))
     sys.exit(1)
