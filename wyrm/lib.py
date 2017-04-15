@@ -43,6 +43,7 @@ def names(word, format=[]):
 def dirs(settings, app=None, format=[], check=False):
     base_dir = os.path.dirname(importlib.util.find_spec(app).origin) if app  else settings.BASE_DIR
     ret={}
+    ret["config"]      = os.path.join(base_dir, "config")
     ret["tests"]       = os.path.join(base_dir, "tests")
     ret["factories"]   = os.path.join(base_dir, "tests/factories")
     ret["models"]      = os.path.join(base_dir, "models" if app else "app/models")
