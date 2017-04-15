@@ -28,19 +28,27 @@ def execute(argv, argv0, engine):
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
     if len(argv) != 0:
         app = argv[0]
+        migrations_dir=lib.dirs(settings, app=app, format=["migrations"], check=True)
         print("[ %s ]" % app)
-        print("%(egg)s/migrations/" % {'egg': os.path.dirname(importlib.util.find_spec(app).origin)})
-        os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
-            'environment': environment,
-            'base': settings.BASE_DIR,
-            'egg': os.path.dirname(importlib.util.find_spec(app).origin)
-        })
+        if migrations_dir:
+            print(migrations_dir)
+            os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
+                'environment': environment,
+                'base': settings.BASE_DIR,
+                'egg': migrations_dir,
+            })
+        else:
+            print("No migrations found")
     else:
         print("[ app ]")
-
-        os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
-            'environment': environment,
-            'base': settings.BASE_DIR
-        })
+        migrations_dir=lib.dirs(settings, format=["migrations"], check=True)
+        if migrations_dir:
+            os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
+                'environment': environment,
+                'base': settings.BASE_DIR,
+                'egg': migrations_dir,
+            })
+        else:
+            print("No migrations found")
     os.chdir(oldcwd)
 

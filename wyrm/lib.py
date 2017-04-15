@@ -1,8 +1,10 @@
-import os, sys, re
+import os, sys, re, importlib
 import inflection
 vanila_dir="/usr/share/aioweb/generators"
 # def asc
 # def names
+# def dirs
+# def get_import
 # def get_template
 # def insert_in_python
 # def indent
@@ -37,6 +39,26 @@ def names(word, format=[]):
     if not format: return ret
     ret= [ret[k] for k in format]
     return ret[0] if len(ret)==1 else ret
+
+def dirs(settings, app=None, format=[], check=False):
+    base_dir = os.path.dirname(importlib.util.find_spec(app).origin) if app  else settings.BASE_DIR
+    ret={}
+    ret["tests"]       = os.path.join(base_dir, "tests")
+    ret["factories"]   = os.path.join(base_dir, "tests/factories")
+    ret["models"]      = os.path.join(base_dir, "models" if app else "app/models")
+    ret["controllers"] = os.path.join(base_dir, "controllers" if app else "app/controllers")
+    ret["views"]       = os.path.join(base_dir, "views" if app else "app/views")
+    ret["migrations"]  = os.path.join(base_dir, "migrations" if app else "db/migrations")
+    if check:
+        for k in ret.keys():
+            if not os.path.exists(ret[k]): ret[k]=None
+    if not format: return ret
+    ret= [ret[k] for k in format]
+    return ret[0] if len(ret)==1 else ret
+
+def get_import(category, component, app=None):
+    return ( app if app else "app" ) + ".{}.{}".format(category, component)
+
 
 def get_template(subpath):
     path=os.path.abspath(subpath)

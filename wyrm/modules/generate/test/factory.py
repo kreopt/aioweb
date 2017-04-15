@@ -14,16 +14,20 @@ def execute(argv, argv0, engine):
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
 
-    table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
     additional_fields = lib.get_fields_from_argv(argv[1:], usage, argv0)
     if not additional_fields: additional_fields = [("string","somefield")]
 
-    os.makedirs(os.path.join(settings.BASE_DIR, 'tests/factories/'), exist_ok=True)
-    dest_path = os.path.join(settings.BASE_DIR, 'tests/factories/{}_factory.py'.format(table))
+    table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
+    factories_dir = lib.dirs(settings, format=["factories"])
+
+    os.makedirs(factories_dir, exist_ok=True)
+    dest_path = os.path.join(factories_dir, '{}_factory.py'.format(table))
+
     if os.path.exists(dest_path):
         if lib.ask(dest_path + " exists\nDo You wanna rewrite it?") == 'n':
            print("factory generation cancelled")
            return 
+
     template=lib.get_template("tests/factory.py") 
     with open(template, "r") as f:
         print("generating " + dest_path)

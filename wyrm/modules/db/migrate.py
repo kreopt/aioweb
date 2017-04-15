@@ -18,22 +18,26 @@ def execute(argv, argv0, engine):
         usage(argv0)
 
     oldcwd = os.getcwd()
-    try:
-        os.mkdir(os.path.join(settings.BASE_DIR, 'db'))
-    except: pass
 
     if len(argv) != 0 and argv[0] not in settings.APPS+["all"]:
         print("ERROR: can't locate the {} app".format(argv[0]))
         print("available apps: {}".format(", ".join(settings.APPS)))
         usage(argv0)
 
+
+    os.makedirs(os.path.join(settings.BASE_DIR, 'db'), exist_ok=True)
+
     def migrate(app):
+        migrations_dir=lib.dirs(settings, app=app, format=["migrations"], check=True)
+        if not migrations_dir:
+            print("No migrations found")
+            return
         print("[ %s ]" % app)
-        print("%(egg)s/migrations/" % {'egg': os.path.dirname(importlib.util.find_spec(app).origin)})
-        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
+        print(migrations_dir)
+        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
             'environment': environment,
             'base': settings.BASE_DIR,
-            'egg': os.path.dirname(importlib.util.find_spec(app).origin)
+            'egg': migrations_dir,
         })
 
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
@@ -46,10 +50,12 @@ def execute(argv, argv0, engine):
 
     if len(argv) == 0 or argv[0]=='all':
         print("[ app ]")
+        migrations_dir=lib.dirs(settings, format=["migrations"])
 
-        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
+        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s" % {
             'environment': environment,
-            'base': settings.BASE_DIR
+            'base': settings.BASE_DIR,
+            'migrations_dir': migrations_dir,
         })
     os.chdir(oldcwd)
 

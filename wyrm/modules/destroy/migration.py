@@ -11,7 +11,7 @@ def execute(argv, argv0, engine):
     import lib
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
-    migrations_dir = os.path.abspath( os.path.join(settings.BASE_DIR, 'db/migrations') )
+    migrations_dir = lib.dirs(settings, format=["migrations"])
 
     sys.path.append( os.getcwd() )
     if len(argv) == 0 or '-h' in argv or '--help' in argv:

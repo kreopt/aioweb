@@ -11,13 +11,13 @@ def execute(argv, argv0, engine):
     import lib, re
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
-    migrations_dir = os.path.abspath( os.path.join(settings.BASE_DIR, 'db/migrations') )
 
     sys.path.append( os.getcwd() )
 
+    migrations_dir, models_dir = lib.dirs(settings, format=["migrations", "models"])
     table, model_name = lib.names(argv[0], ["table", "model"])
     migration_name = "create_{}_table".format(table)
-    model_file="app/models/{}.py".format(model_name)
+    model_file     = os.path.join( models_dir, "{}.py".format(model_name) )
 
     if os.path.exists(model_file):
         print("delete " + model_file)

@@ -11,16 +11,20 @@ def execute(argv, argv0, engine):
     import lib
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
-    migrations_dir = os.path.abspath( os.path.join(settings.BASE_DIR, 'db/migrations') )
 
     sys.path.append( os.getcwd() )
+
     if len(argv) <= 1 or '-h' in argv or '--help' in argv:
         usage(argv0)
+
     additional_fields = lib.get_fields_from_argv(argv[2:], usage, argv0)
 
+    migrations_dir, models_dir = lib.dirs(settings, format=["migrations", "models"])
     table, model_name, model_class = lib.names(argv[0], ["table", "model", "class"])
+
     migration_name = argv[1]
-    model_file="app/models/{}.py".format(model_name)
+    model_file     = os.path.join( models_dir, "{}.py".format(model_name) )
+
     if not os.path.exists(model_file):
         if lib.ask("{} does not exists.\nDo you wanna continue?".format(model_file)) == 'n':
             print("migration aborted")

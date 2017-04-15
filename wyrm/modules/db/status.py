@@ -24,18 +24,20 @@ def execute(argv, argv0, engine):
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
 
     for app in settings.APPS:
-        print("[ %s ]" % app)
-        print("%(egg)s/migrations/" % {'egg': os.path.dirname(importlib.util.find_spec(app).origin)})
-        os.system("orator migrate:status -c %(base)s/config/database.yml -p %(egg)s/migrations/ -d %(environment)s" % {
-            'environment': environment,
-            'base': settings.BASE_DIR,
-            'egg': os.path.dirname(importlib.util.find_spec(app).origin)
-        })
+        migrations_dir=lib.dirs(settings, app=app, format=["migrations"], check=True)
+        if migrations_dir:
+            print("[ %s ]" % app)
+            os.system("orator migrate:status -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
+                'environment': environment,
+                'base': settings.BASE_DIR,
+                'egg': migrations_dir,
+            })
     print("[ app ]")
-
-    os.system("orator migrate:status -c %(base)s/config/database.yml -p %(base)s/db/migrations/ -d %(environment)s" % {
+    migrations_dir=lib.dirs(settings, format=["migrations"], check=True)
+    os.system("orator migrate:status -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
         'environment': environment,
-        'base': settings.BASE_DIR
+        'base': settings.BASE_DIR,
+        'egg': migrations_dir,
     })
     os.chdir(oldcwd)
 
