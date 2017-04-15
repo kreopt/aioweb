@@ -1,6 +1,26 @@
 import os, sys, re
 import inflection
 vanila_dir="/usr/share/aioweb/generators"
+# def asc
+# def names
+# def get_template
+# def insert_in_python
+# def indent
+
+def init_orator(settings):
+    import yaml
+    from orator import DatabaseManager
+    from orator import Model
+    with open(os.path.join( settings.BASE_DIR, "config/database.yml"), "r") as f:
+        dbconfig=yaml.load( f.read() )
+        dbconfig = dbconfig["databases"]
+        environment = os.getenv("AIOWEB_ENV", dbconfig["default"])
+        dbconfig["default"] = environment
+        if dbconfig[environment]["driver"] == "sqlite":
+            dbconfig[environment]["database"]=os.path.join( settings.BASE_DIR, "db/{}".format(dbconfig[environment]["database"]) )
+
+    Model.set_connection_resolver( DatabaseManager(dbconfig) )
+
 def ask(question, answers=["y", "n"]):
     while True:
         print(question + " [" + ",".join(answers) + "]" )
