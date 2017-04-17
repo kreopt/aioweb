@@ -64,7 +64,7 @@ class Router(object):
 
         ctrl_class_name = '.'.join((self.package, name))
         if ctrl_class_name not in self.app.controllers:
-            self.app.controllers[ctrl_class_name] = ctrl_class(self.app)
+            self.app.controllers[ctrl_class_name] = ctrl_class
             self.app.controllers[ctrl_class_name].search_path = self.view_prefix
         return self.app.controllers[ctrl_class_name]
 
@@ -72,24 +72,24 @@ class Router(object):
 
         if type(controller) == str:
             try:
-                ctrl_inst = self._import_controller(controller)
+                ctrl_class = self._import_controller(controller)
             except Exception as e:
                 web_logger.warn("Failed to import controller: %s. skip\n reason : %s" % (controller, e))
                 raise e
         else:
-            ctrl_inst = controller
+            ctrl_class = controller
 
         async def action_handler(request):
-            handler = getattr(ctrl_inst, '_dispatch')
+            ctrl_instance = ctrl_class(request)
             if self.context.check(request):
-                return await handler(action_name, request)
+                return await ctrl_instance._dispatch(action_name)
             else:
                 raise web.HTTPForbidden(reason=self.context.reason)
 
         url = "/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name)
 
         return [url, action_handler,
-                "%s.%s" % (extract_name_from_class(ctrl_inst.__class__.__name__, 'Controller'), action_name)]
+                "%s.%s" % (extract_name_from_class(ctrl_class.__name__, 'Controller'), action_name)]
 
     def _resolve_handler_by_name(self, name):
         try:

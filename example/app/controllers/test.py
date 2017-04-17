@@ -7,8 +7,8 @@ class TestController(aioweb.core.BaseController):
         super().__init__(app)
         self._defaultLayout = 'base.html'
 
-    async def index(self, request):
+    async def index(self):
         return {'test': 'It works!'}
 
-    async def test(self, request):
+    async def test(self):
         return {'test': 'It works again!'}

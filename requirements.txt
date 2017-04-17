@@ -11,4 +11,4 @@ passlib
 pytest-asyncio
 orator
 pyyaml
-infect
+inflect
