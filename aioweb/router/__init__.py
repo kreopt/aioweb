@@ -51,7 +51,10 @@ class Router(object):
                 prefixes.append(parent.prefix)
             parent = parent.parent
         prefixes.reverse()
-        return '/'.join(prefixes).replace('///', '/').replace('//', '/')
+        url = '/'.join(prefixes).replace('///', '/').replace('//', '/')
+        if url.endswith('/'):
+            url=url[:-1]
+        return url
 
     def _import_controller(self, name):
         if type(name) != str:

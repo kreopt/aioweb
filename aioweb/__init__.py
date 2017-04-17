@@ -3,6 +3,8 @@ import os
 import traceback
 
 import yaml
+from aiohttp import web_response, hdrs
+from aiohttp.abc import AbstractMatchInfo
 from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
 from yarl import URL
@@ -32,6 +34,15 @@ class Application(AioApp):
 
     def has_module(self, module):
         return module in self.modules
+
+
+    async def _handle(self, request):
+        http_method = request.headers.get('X-Http-Method-Override', '').upper()
+        overriden = request.clone(method=http_method if http_method else request.method,
+                                  rel_url=request.rel_url.path.rstrip('/')
+                                  )
+
+        return await super()._handle(overriden)
 
 
 def run_app(app, *,
