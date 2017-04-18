@@ -70,19 +70,18 @@ for module in modules:
             commands[alias] = module
 
 def print_cmd(co, n=1, addr=[]):
-    for k in co.keys():
+    for k in sorted(co.keys(), key=lambda k: ("zzzz" + k) if type(co[k]) == dict else k):
         if type(co[k]) == dict:
+            if n==1: print("")
             aliases = [a for a in co.keys() if co[a] == k]
             print("  "*n+ ", ".join([k]+aliases))
             print_cmd(co[k], n+1, addr+[k])
-            if n==1: print("")
         elif type(co[k]) != str:
             aliases = [a for a in co.keys() if co[a] == k]
             ln = "  "*n+ ", ".join([k]+aliases)
             ln+=' '*(30-len(ln))
             ln+=briefs['.'.join(addr+[k])]
             print(ln)
-            if n==1: print("")
 
 
 def usage(argv0):

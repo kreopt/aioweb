@@ -21,6 +21,7 @@ def init_orator(settings):
         if dbconfig[environment]["driver"] == "sqlite":
             dbconfig[environment]["database"]=os.path.join( settings.BASE_DIR, "db/{}".format(dbconfig[environment]["database"]) )
 
+    if Model.get_connection_resolver(): Model.get_connection_resolver().disconnect()
     Model.set_connection_resolver( DatabaseManager(dbconfig) )
 
 def ask(question, answers=["y", "n"]):

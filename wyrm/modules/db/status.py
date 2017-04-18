@@ -17,21 +17,10 @@ def execute(argv, argv0, engine):
     if '-h' in argv or '--help' in argv:
         usage(argv0)
     oldcwd = os.getcwd()
-    try:
-        os.mkdir(os.path.join(settings.BASE_DIR, 'db'))
-    except: pass
+    os.makedirs(os.path.join(settings.BASE_DIR, 'db'), exist_ok=True)
 
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
 
-    for app in settings.APPS:
-        migrations_dir=lib.dirs(settings, app=app, format=["migrations"], check=True)
-        if migrations_dir:
-            print("[ %s ]" % app)
-            os.system("orator migrate:status -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
-                'environment': environment,
-                'base': settings.BASE_DIR,
-                'egg': migrations_dir,
-            })
     print("[ app ]")
     migrations_dir=lib.dirs(settings, format=["migrations"], check=True)
     os.system("orator migrate:status -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
