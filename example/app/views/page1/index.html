@@ -1,5 +1,7 @@
 {% extends controller._layout %}
 {% block content %}
+    {{ username }}<br>
+    {{ group }}
     <form method="post">
     {% csrf_token %}
     <button>ok</button>
