@@ -6,7 +6,7 @@ def usage(argv0):
     print("Usage: {} generate test model MODEL_NAME".format(argv0))
     sys.exit(1)
 
-alias=['m']
+aliases=['m']
 
 def execute(argv, argv0, engine):
     if not argv:

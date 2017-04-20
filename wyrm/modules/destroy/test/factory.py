@@ -3,9 +3,10 @@ import os
 
 brief="delete a factory"
 def usage(argv0):
-    print("Usage: {} destroy factory MODEL_NAME".format(argv0))
+    print("Usage: {} destroy test factory MODEL_NAME".format(argv0))
     sys.exit(1)
 
+aliases=['f']
 def execute(argv, argv0, engine):
     import lib, re
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")

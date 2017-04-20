@@ -34,4 +34,5 @@ def execute(argv, argv0, engine):
             os.unlink( file_path )
     print("destroying factory")
     engine["commands"]["destroy"]["test"]["factory"](argv, argv0, engine)
+    engine["commands"]["destroy"]["test"]["model"](argv, argv0, engine)
 
