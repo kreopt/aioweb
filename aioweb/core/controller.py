@@ -68,7 +68,7 @@ class BaseController(object):
             # TODO:
             raise e
 
-        for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS'):
+        for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
             if actionName not in beforeAction[ProcessDescriptor.EXCEPT] and \
                 (actionName in beforeAction[ProcessDescriptor.ONLY] or
                      len(beforeAction[ProcessDescriptor.ONLY]) == 0):
