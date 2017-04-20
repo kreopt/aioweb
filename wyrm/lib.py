@@ -1,4 +1,4 @@
-import os, sys, re, importlib
+import os, sys, re, importlib, yaml
 import inflection
 vanila_dir="/usr/share/aioweb/generators"
 # def asc
@@ -9,10 +9,7 @@ vanila_dir="/usr/share/aioweb/generators"
 # def insert_in_python
 # def indent
 
-def init_orator(settings):
-    import yaml
-    from orator import DatabaseManager
-    from orator import Model
+def get_dbconfig(settings):
     with open(os.path.join( settings.BASE_DIR, "config/database.yml"), "r") as f:
         dbconfig=yaml.load( f.read() )
         dbconfig = dbconfig["databases"]
@@ -20,6 +17,13 @@ def init_orator(settings):
         dbconfig["default"] = environment
         if dbconfig[environment]["driver"] == "sqlite":
             dbconfig[environment]["database"]=os.path.join( settings.BASE_DIR, "db/{}".format(dbconfig[environment]["database"]) )
+        return dbconfig
+
+def init_orator(settings):
+    import yaml
+    from orator import DatabaseManager
+    from orator import Model
+    dbconfig = get_dbconfig(settings)
 
     if Model.get_connection_resolver(): Model.get_connection_resolver().disconnect()
     Model.set_connection_resolver( DatabaseManager(dbconfig) )
@@ -48,12 +52,14 @@ def dirs(settings, app=None, format=[], check=False):
     ret["tests"]       = os.path.join(base_dir, "tests")
     ret["factories"]   = os.path.join(base_dir, "tests/factories")
     ret["models"]      = os.path.join(base_dir, "models" if app else "app/models")
+    ret["tests_models"]= os.path.join(base_dir, "tests/models") if not app else None
     ret["controllers"] = os.path.join(base_dir, "controllers" if app else "app/controllers")
     ret["views"]       = os.path.join(base_dir, "views" if app else "app/views")
     ret["migrations"]  = os.path.join(base_dir, "migrations" if app else "db/migrations")
+    ret["tests_controllers"]= os.path.join(base_dir, "tests/controllers") if not app else None
     if check:
         for k in ret.keys():
-            if not os.path.exists(ret[k]): ret[k]=None
+            if ret[k] and not os.path.exists(ret[k]): ret[k]=None
     if not format: return ret
     ret= [ret[k] for k in format]
     return ret[0] if len(ret)==1 else ret

@@ -54,4 +54,5 @@ def execute(argv, argv0, engine):
 
     print("generating factory")
     engine["commands"]["generate"]["test"]["factory"](argv, argv0, engine)
+    engine["commands"]["generate"]["test"]["model"](argv[:1], argv0, engine)
 
