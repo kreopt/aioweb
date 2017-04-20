@@ -1,7 +1,7 @@
 import os, sys, re, importlib, yaml
 import inflection
 vanila_dir="/usr/share/aioweb/generators"
-# def asc
+# def ask
 # def names
 # def dirs
 # def get_import

@@ -84,11 +84,14 @@ def print_cmd(co, n=1, addr=[]):
             print(ln)
 
 
-def usage(argv0):
+def usage(argv0, co=None, addr=[]):
     print("Usage: " + argv0 + " <command> [-h|--help] [args]")
     print("")
-    print("Wyrm supports these commands:")
-    print_cmd(commands)
+    if addr:
+        print('"wyrm {}" supports these subcommands:'.format(' '.join(addr)) )
+    else:
+        print("Wyrm supports these commands:")
+    print_cmd(commands if not co else co, addr=addr)
     sys.exit(1)
 
 def execute(argv=None):
@@ -99,16 +102,19 @@ def execute(argv=None):
     n = 1
     co = commands
     command = commands.get(argv[1])
+    addr=[]
     while not callable(command):
         if command == None:
             usage(argv[0])
         elif type(command) == str:
+            argv[n]=command
             command=co[command]
         else:
+            addr.append(argv[n])
             co = command
             n+=1
             if n == len(argv):
-                usage(argv[0])
+                usage(argv[0], command, addr)
             command= command[argv[n]]
 
     engine = {"commands": commands, "aliases": aliases}
