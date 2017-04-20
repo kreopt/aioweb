@@ -1,4 +1,5 @@
 import asyncio
+import inspect
 import os
 import re
 import importlib.util
@@ -18,10 +19,25 @@ def extract_name_from_class(class_name, item_type):
     return camel_to_snake(re.sub('%s$' % item_type, '', class_name))
 
 
-def handler_as_coroutine(handler):
-    if not asyncio.iscoroutinefunction(handler):
-        return asyncio.coroutine(handler)
-    return handler
+# def as_coroutine(handler):
+#     if not asyncio.iscoroutinefunction(handler):
+#         return asyncio.coroutine(handler)
+#     return handler
+
+async def awaitable(result):
+    if asyncio.iscoroutine(result):
+        return await result
+    return result
 
 def package_path(pkg):
     return os.path.dirname(importlib.util.find_spec(pkg).origin)
+
+def get_own_properties(cls, predicate=inspect.isfunction):
+    return [e for e in inspect.getmembers(cls, inspect.isfunction) if e[0] in cls.__dict__]
+
+
+class PrivateData(object):
+    def __init__(self, **kwargs) -> None:
+        super().__init__()
+        for arg in kwargs:
+            setattr(self, arg, kwargs[arg])

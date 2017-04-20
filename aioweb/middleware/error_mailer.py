@@ -5,7 +5,7 @@ from aiohttp import web
 from aiohttp.log import web_logger
 
 from aioweb.conf import settings
-from aioweb.util import handler_as_coroutine
+from aioweb.util import awaitable
 from aioweb.email import send_mail
 
 
@@ -35,7 +35,7 @@ async def mail_traceback(request):
 async def middleware(app, handler):
     async def middleware_handler(request):
         try:
-            return await handler_as_coroutine(handler)(request)
+            return await awaitable(handler(request))
         except (web.HTTPClientError, web.HTTPRedirection) as e:
             raise e
         except web.HTTPServerError as e:

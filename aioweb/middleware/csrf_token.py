@@ -1,6 +1,6 @@
 from aiohttp import web
 
-from aioweb.util import handler_as_coroutine
+from aioweb.util import awaitable
 from aioweb.util.csrf import make_csrf_token, unsalt_cipher_token, sanitize_token, compare_salted_tokens
 
 CSRF_FIELD_NAME = 'csrftoken'
@@ -55,7 +55,7 @@ async def middleware(app, handler):
         setattr(request, 'csrf_token', get_token(request))
 
         if check_ok:
-            response = await handler_as_coroutine(handler)(request)
+            response = await awaitable(handler(request))
             if not request.cookies.get(CSRF_COOKIE_NAME) or need_refresh:
                 response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
                 response.headers[CSRF_HEADER_NAME] = request.csrf_token

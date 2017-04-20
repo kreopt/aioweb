@@ -1,3 +1,3 @@
 
-async def METHOD(self, request):
+async def METHOD(self):
     return {}

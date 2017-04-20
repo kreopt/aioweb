@@ -4,7 +4,7 @@ from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
 from aioweb.router.context import DefaultContext, AuthenticatedContext
-from aioweb.util import snake_to_camel, extract_name_from_class, handler_as_coroutine
+from aioweb.util import snake_to_camel, extract_name_from_class, awaitable
 from .mutidirstatic import StaticMultidirResource
 
 
@@ -112,7 +112,7 @@ class Router(object):
             async def wrapped_handler(request):
                 # TODO: custom responses for contexts. For example redirect to login page in AuthContext
                 if self.context.check(request):
-                    return await handler_as_coroutine(handler)(request)
+                    return await awaitable(handler(request))
                 else:
                     raise web.HTTPForbidden(reason=self.context.reason)
             handler = wrapped_handler

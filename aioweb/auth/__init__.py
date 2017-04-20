@@ -2,7 +2,7 @@ import asyncio
 
 from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
-from aioweb.util import handler_as_coroutine
+from aioweb.util import awaitable
 from orator.exceptions.orm import ModelNotFound
 from passlib.hash import sha256_crypt
 
@@ -24,7 +24,7 @@ def login_required(login_url='/auth/', login_route=''):
                 request = p
 
             if request.user.is_authenticated():
-                return await handler_as_coroutine(func)(p, *args)
+                return await awaitable(func(p, *args))
             else:
                 if login_route:
                     url = request.app.router[login_route].url()

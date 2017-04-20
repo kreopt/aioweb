@@ -1,7 +1,7 @@
 import aioweb.core
+from aioweb.core.controller.decorators import default_layout
 
 
+@default_layout('base.html')
 class CLASS(aioweb.core.BaseController):
-    def __init__(self, app):
-        super().__init__(app)
-        self._defaultLayout = 'base.html'
+    pass

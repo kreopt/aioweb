@@ -1,29 +1,29 @@
 import aioweb.core
-from aioweb.core.controller import before
+from aioweb.core.controller.decorators import before_action, disable_csrf, csrf_exempt, csrf_protect, default_layout, template
 
 
-def set_user(ctrl):
+async def set_user(ctrl):
     ctrl.user = 'username'
 
 def set_group(ctrl):
     ctrl.group = '%s group' % ctrl.user
 
+@before_action(set_user)
+@before_action(set_group)
+@disable_csrf()
+# @authenticated(only=tuple(), exclude=tuple())
+@default_layout('base.html')
 class Page1Controller(aioweb.core.BaseController):
 
-    def __init__(self, request):
-        super().__init__(request)
-        self._defaultLayout = 'base.html'
-
+    @csrf_exempt
     async def index(self):
         return {'test': 'It works!', 'username': self.user, 'group': self.group}
 
+    @csrf_protect
+    @template('page1/index.html')
     async def csrf(self):
-        self.use_view('page1/index.html')
         return await self.index()
 
+    # @private
     async def private(self):
         pass
-
-
-Page1Controller.before_action(set_user)
-Page1Controller.before_action(set_group)
