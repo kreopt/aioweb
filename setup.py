@@ -28,7 +28,7 @@ class CustomInstallCommand(install):
         os.mkdir("/usr/share/aioweb")
         shutil.copytree("generators", "/usr/share/aioweb/generators")
 
-        
+
 
 setup(name='aioweb',
       version='0.1',
@@ -37,7 +37,7 @@ setup(name='aioweb',
       author_email='kreopt@gmail.com',
       url='https://github.com/kreopt/aioweb/',
       #scripts=['bin/wyrm'],
-      packages=find_packages(exclude=('example', 'tests')),
+      packages=find_packages(exclude=('test_project', 'tests')),
       include_package_data=True,
       install_requires=requirements,
       extras_require={
@@ -46,5 +46,5 @@ setup(name='aioweb',
       },
       data_files=data_files,
       cmdclass={'install': CustomInstallCommand}
-      
+
      )

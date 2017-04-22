@@ -4,15 +4,13 @@ from aiohttp import web
 from orator import DatabaseManager
 from orator.exceptions.orm import ModelNotFound
 
-from . import settings
-from aiohttp.log import web_logger
+from aioweb import ConfigReader
+from aioweb.conf import settings
 
 from orator import Model
-import yaml
 
 async def init_db(app):
-    with open(os.path.join(settings.BASE_DIR, 'config/database.yml'), 'r') as stream:
-        conf = yaml.load(stream)
+    conf = ConfigReader('config/database.yml')
     db_conf = conf.get('databases')
     if not db_conf:
         raise ReferenceError('Database configuration does not contain databases domain')

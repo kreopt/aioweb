@@ -1,5 +1,6 @@
 import aioweb.core
-from aioweb.core.controller.decorators import before_action, disable_csrf, csrf_exempt, csrf_protect, default_layout, template
+from aioweb.core.controller.decorators import before_action, default_layout, template
+from aioweb.middleware.csrf.decorators import csrf_exempt, csrf_protect, disable_csrf
 
 
 async def set_user(ctrl):

@@ -1,7 +1,9 @@
 from aiohttp import web
 
+from aioweb.middleware.csrf.templatetags import CsrfTag
 from aioweb.util import awaitable
-from aioweb.util.csrf import make_csrf_token, unsalt_cipher_token, sanitize_token, compare_salted_tokens
+from .csrf import make_csrf_token, unsalt_cipher_token, sanitize_token, compare_salted_tokens
+from aioweb.modules.template.backends.jinja2 import APP_KEY as JINJA_APP_KEY
 
 CSRF_FIELD_NAME = 'csrftoken'
 CSRF_HEADER_NAME = 'X-Csrf-Token'
@@ -28,41 +30,58 @@ def get_token(request):
     cookietoken = sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
     return make_csrf_token(unsalt_cipher_token(cookietoken) if cookietoken else None)
 
+def set_token(response, token):
+    response.set_cookie(CSRF_COOKIE_NAME, token)
+    response.headers[CSRF_HEADER_NAME] = token
+
+def sanitize_request_token(request):
+    return sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
 
 async def middleware(app, handler):
     async def middleware_handler(request):
-        reason = None
-        need_refresh = False
-        if request.method in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
-            check_ok = True
-        else:
+
+        setattr(request, 'csrf_token', get_token(request))
+        cookie_token = sanitize_request_token(request)
+
+        try:
+            response = await awaitable(handler(request))
+        except web.HTTPException as e:
+            if not cookie_token:
+                set_token(e, request.csrf_token)
+            raise e
+
+        if not cookie_token:
+            set_token(response, request.csrf_token)
+
+        return response
+
+    return middleware_handler
+
+def setup(app):
+    app[JINJA_APP_KEY].add_extension(CsrfTag)
+
+async def pre_dispatch(request, controller, actionName):
+    reason = None
+
+    check_ok = True
+    if request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
+
+        action = getattr(controller, actionName)
+
+        if not getattr(action ,'csrf_disabled', False):
             check_ok = False
-            cookietoken = sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
+            cookietoken = sanitize_request_token(request)
 
             if cookietoken:
                 # TODO: check referer
 
                 data = await request.post()
                 requesttoken = sanitize_token(data.get(CSRF_FIELD_NAME, ''))
-                if compare_salted_tokens(requesttoken, cookietoken):
+                if requesttoken and compare_salted_tokens(requesttoken, cookietoken):
                     check_ok = True
                 else:
                     reason = REASON_BAD_TOKEN
             else:
-                need_refresh = True
                 reason = REASON_NO_CSRF_COOKIE
-
-        setattr(request, 'csrf_token', get_token(request))
-
-        if check_ok:
-            response = await awaitable(handler(request))
-            if not request.cookies.get(CSRF_COOKIE_NAME) or need_refresh:
-                response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
-                response.headers[CSRF_HEADER_NAME] = request.csrf_token
-            return response
-        else:
-            response = web.HTTPForbidden(reason=reason)
-            response.set_cookie(CSRF_COOKIE_NAME, request.csrf_token)
-            response.headers[CSRF_HEADER_NAME] = request.csrf_token
-            raise response
-    return middleware_handler
+    if not check_ok:
+        raise web.HTTPForbidden(reason=reason)

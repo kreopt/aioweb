@@ -14,6 +14,7 @@ class User(Model, AbstractUser):
 
     @mutator
     def password(self, value):
+        #TODO: configurable hash type
         self.set_raw_attribute('password', sha256_crypt.hash(value))
 
     def __str__(self):

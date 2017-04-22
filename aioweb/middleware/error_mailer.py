@@ -6,7 +6,7 @@ from aiohttp.log import web_logger
 
 from aioweb.conf import settings
 from aioweb.util import awaitable
-from aioweb.email import send_mail
+from aioweb.modules.email import send_mail
 
 
 async def mail_traceback(request):

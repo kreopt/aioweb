@@ -1,6 +1,5 @@
 import os
 from aioweb.conf import settings
-from aioweb.router import AuthenticatedContext
 from aioweb.util import package_path
 
 

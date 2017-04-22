@@ -3,34 +3,35 @@ import os
 import traceback
 
 import yaml
-from aiohttp import web_response, hdrs
-from aiohttp.abc import AbstractMatchInfo
 from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
 from yarl import URL
 
 from aioweb.middleware import setup_middlewares
-from . import router
+from aioweb.util.conf_reader import ConfigReader
+from .core import router
 from .conf import settings
 
 class Application(AioApp):
     def __init__(self, *, logger=web_logger, loop=None, router=None, debug=...):
         super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
-        setup_middlewares(self)
+        self.conf = ConfigReader('config/config.yml')
         self.modules = set()
 
     async def setup(self):
 
-        router.setup_routes(self)
         for mod_name in settings.MODULES:
             try:
-                mod = importlib.import_module(".%s" % mod_name, __name__)
+                mod = importlib.import_module(".modules.%s" % mod_name, __name__)
                 setup = getattr(mod, 'setup')
                 if setup:
                     self.modules.add(mod_name)
                     await setup(self)
             except (ImportError, AttributeError) as e:
                 traceback.print_exc()
+
+        setup_middlewares(self)
+        router.setup_routes(self)
 
     def has_module(self, module):
         return module in self.modules
@@ -55,8 +56,8 @@ def run_app(app, *,
         'host': '0.0.0.0',
         'port': 8000
     }
-    with open(os.path.join(settings.BASE_DIR, 'config/server.yml'), 'r') as stream:
-        conf.update(yaml.load(stream).get(app['env'], {}))
+    conf_reader = ConfigReader('config/server.yml')
+    conf.update(conf_reader.config)
 
     host = conf['host']
     port = conf['port']

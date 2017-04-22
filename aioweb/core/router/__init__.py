@@ -3,21 +3,22 @@ import importlib
 from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
-from aioweb.router.context import DefaultContext, AuthenticatedContext
+from aioweb.core.router.context import DefaultContext, AuthenticatedContext
+from aioweb.middleware import PRE_DISPATCHERS
 from aioweb.util import snake_to_camel, extract_name_from_class, awaitable
 from .mutidirstatic import StaticMultidirResource
 
 
 class Router(object):
 
-    def __init__(self, app, name='', prefix='', parent=None, package='app', context=DefaultContext()):
+    def __init__(self, app, name='', prefix='', parent=None, package='app', pre_dispatchers=tuple()):
         self.app = app
         self.name = name
         self.prefix = prefix
         self.parent = parent
         self.package = package
         self.view_prefix = ''
-        self.context = context
+        self.preDispatchers = pre_dispatchers
         self.routers = []
         self._currentPrefix = ''
         self._currentName = ''
@@ -84,10 +85,20 @@ class Router(object):
 
         async def action_handler(request):
             ctrl_instance = ctrl_class(request)
-            if self.context.check(request):
-                return await ctrl_instance._dispatch(action_name)
-            else:
-                raise web.HTTPForbidden(reason=self.context.reason)
+            try:
+                action = getattr(ctrl_instance, action_name)
+            except AttributeError as e:
+                raise web.HTTPNotFound(reason='Action %s#%s not found' % (controller, action_name))
+
+            # TODO: something better
+            for preDispatcher in PRE_DISPATCHERS:
+                if callable(preDispatcher):
+                    await awaitable(preDispatcher(request, ctrl_instance, action_name))
+
+            for preDispatcher in self.preDispatchers:
+                if callable(preDispatcher):
+                    await awaitable(preDispatcher(request, ctrl_instance, action_name))
+            return await ctrl_instance._dispatch(action, action_name)
 
         url = "/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name)
 
@@ -108,14 +119,6 @@ class Router(object):
             [url, handler, gen_name] = self._resolve_handler_by_name(url)
         elif type(handler) == str:
             [_, handler, gen_name] = self._resolve_handler_by_name(handler)
-        elif callable(handler):
-            async def wrapped_handler(request):
-                # TODO: custom responses for contexts. For example redirect to login page in AuthContext
-                if self.context.check(request):
-                    return await awaitable(handler(request))
-                else:
-                    raise web.HTTPForbidden(reason=self.context.reason)
-            handler = wrapped_handler
 
         return url, handler, gen_name
 
@@ -207,11 +210,11 @@ class Router(object):
         self.app.router.register_resource(resource)
         return self
 
-    def constrained(self, context=DefaultContext()):
+    def constrained(self, checks=tuple()):
         subrouter = Router(self.app, prefix=self._currentPrefix,
                            name=self._currentName,
                            package=self._currentPackage,
-                           context=context)
+                           pre_dispatchers=checks)
         self.routers.append(subrouter)
         return subrouter
 
@@ -237,7 +240,7 @@ class Router(object):
         self._currentPackage = oldPackage
 
     def __enter__(self):
-        return self.constrained(self.context)
+        return self.constrained(self.preDispatchers)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._currentName = ''

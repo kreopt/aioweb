@@ -1,10 +1,14 @@
+import platform
+
 BRAND = 'Aioweb'
+SERVER_EMAIL = 'aioweb@%s' % platform.node()
+TEMPLATE_BACKEND = 'jinja2'
+
 ADMINS = []
 MODULES = [
     'db',
     'session',
-    'auth',
-    'render',
+    'template',
     'email'
 ]
 APPS = []

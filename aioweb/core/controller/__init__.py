@@ -4,7 +4,7 @@ from aiohttp import web
 from aiohttp_jinja2 import APP_KEY
 
 from aioweb.core.controller.decorators import ProcessDescriptor
-from aioweb.render import render_template
+from aioweb.modules import template
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
 
 
@@ -41,19 +41,14 @@ class BaseController(object):
 
     def render(self, data):
         self.request.app[APP_KEY].globals['controller'] = self
-        return render_template(self._private.template, self.request, data)
+        return template.render(self._private.template, self.request, data)
 
-    async def _dispatch(self, actionName):
+    async def _dispatch(self, action, actionName):
 
-        self._private.layout = getattr(self.__class__, 'LAYOUT') if not self.request.is_ajax() else BaseController.EMPTY_LAYOUT
-        self._private.template = os.path.join(self._private.search_path, self._private.controller, '%s.html' % actionName)
-
-        try:
-            action = getattr(self, actionName)
-        except AttributeError as e:
-            # TODO:
-            raise e
-
+        self._private.layout = getattr(self.__class__,
+                                       'LAYOUT') if not self.request.is_ajax() else BaseController.EMPTY_LAYOUT
+        self._private.template = os.path.join(self._private.search_path, self._private.controller,
+                                              '%s.html' % actionName)
         # TODO: something better
         for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
             if actionName not in beforeAction[ProcessDescriptor.EXCEPT] and \

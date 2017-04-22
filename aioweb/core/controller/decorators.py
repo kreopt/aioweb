@@ -1,11 +1,11 @@
 from enum import Enum
 
+import aioweb.core.controller
 ##
 ## Preprocessing
 ##
 from aioweb.util import get_own_properties
 
-import aioweb.core.controller
 
 class ProcessDescriptor(Enum):
     FN = 'fn'
@@ -34,29 +34,6 @@ def before_action(fn, only=tuple(), exclude=tuple()):
     return decorate
 
 ##
-## CSRF
-## TODO: move to middleware
-
-
-def csrf_exempt(fn):
-    def decorated(self, *args, **kwargs):
-        return fn(self, *args, **kwargs)
-    return decorated
-
-def csrf_protect(fn):
-    def decorated(self, *args, **kwargs):
-        return fn(self, *args, **kwargs)
-    return decorated
-
-def disable_csrf(only=tuple(), exclude=tuple()):
-    def decorate(cls):
-        for name, member in get_own_properties(cls):
-            if name not in exclude and (name in only or len(only) == 0):
-                pass
-        return cls
-    return decorate
-
-##
 ## Render
 ##
 
@@ -70,7 +47,7 @@ def default_layout(layout_name):
 def template(template_name):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            super(aioweb.core.controller.BaseController, self).template = template_name
+            aioweb.core.controller.BaseController.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
         return decorated
     return decorator
@@ -78,7 +55,7 @@ def template(template_name):
 def layout(template_name):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            super(aioweb.core.controller.BaseController, self).template = template_name
+            aioweb.core.controller.BaseController.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
         return decorated
     return decorator

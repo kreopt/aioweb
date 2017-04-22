@@ -14,8 +14,6 @@ class CreateUsersTable(Migration):
             table.string('password', 256)
             table.string('email', 50).unique()
             table.boolean('disabled').default(False)
-            table.boolean('is_superuser').default(False)
-            table.boolean('is_staff').default(False)
 
 
     def down(self):
