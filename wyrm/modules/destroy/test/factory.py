@@ -1,12 +1,17 @@
 import sys
 import os
 
-brief="delete a factory"
+brief = "delete a factory"
+
+
 def usage(argv0):
     print("Usage: {} destroy test factory MODEL_NAME".format(argv0))
     sys.exit(1)
 
-aliases=['f']
+
+aliases = ['f']
+
+
 def execute(argv, argv0, engine):
     import lib, re
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
@@ -15,10 +20,8 @@ def execute(argv, argv0, engine):
         usage(argv0)
 
     table = lib.names(argv[0], ["table"])
-    factory_path = os.path.join( lib.dirs(settings, format=["factories"]), '{}_factory.py'.format(table) )
+    factory_path = os.path.join(lib.dirs(settings, format=["factories"]), '{}_factory.py'.format(table))
 
     if os.path.exists(factory_path):
         print("removing " + factory_path)
         os.unlink(factory_path)
-
-

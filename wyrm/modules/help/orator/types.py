@@ -1,6 +1,8 @@
 import os, sys
 import shutil
-brief="output field types"
+
+brief = "output field types"
+
 
 def execute(argv, argv0, engine):
     print("""

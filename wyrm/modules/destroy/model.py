@@ -1,38 +1,45 @@
 import sys
 import os
 
-brief="delete the model and all model's migrations"
+brief = "delete the model and all model's migrations"
+
+
 def usage(argv0):
     print("Usage: {} destroy model MODEL_NAME".format(argv0))
     sys.exit(1)
 
-aliases=['m']
+
+aliases = ['m']
+
+
 def execute(argv, argv0, engine):
     import lib, re
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
 
-    sys.path.append( os.getcwd() )
+    sys.path.append(os.getcwd())
 
     migrations_dir, models_dir = lib.dirs(settings, format=["migrations", "models"])
     table, model_name = lib.names(argv[0], ["table", "model"])
     migration_name = "create_{}_table".format(table)
-    model_file     = os.path.join( models_dir, "{}.py".format(model_name) )
+    model_file = os.path.join(models_dir, "{}.py".format(model_name))
 
     if os.path.exists(model_file):
         print("delete " + model_file)
         os.unlink(model_file)
 
-    try: rc = [os.path.join(migrations_dir, f) for f in os.listdir( migrations_dir ) if os.path.isfile( os.path.join(migrations_dir, f) ) ]
-    except FileNotFoundError: rc=[]
+    try:
+        rc = [os.path.join(migrations_dir, f) for f in os.listdir(migrations_dir) if
+              os.path.isfile(os.path.join(migrations_dir, f))]
+    except FileNotFoundError:
+        rc = []
     for file_path in rc:
-        sr=None
+        sr = None
         with open(file_path, "r") as f:
-            sr=re.search(r"schema\.\w+\(\s*['\"]{}['\"]".format(table), f.read())
+            sr = re.search(r"schema\.\w+\(\s*['\"]{}['\"]".format(table), f.read())
         if sr:
             print("delete " + file_path)
-            os.unlink( file_path )
+            os.unlink(file_path)
     print("destroying factory")
     engine["commands"]["destroy"]["test"]["factory"](argv, argv0, engine)
     engine["commands"]["destroy"]["test"]["model"](argv, argv0, engine)
-

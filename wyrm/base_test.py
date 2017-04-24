@@ -1,12 +1,14 @@
 import unittest, wyrm.lib, os
 from orator.migrations import Migrator, DatabaseMigrationRepository
 from orator import Model
-settings=None
+
+settings = None
+
 
 class AoiWebTestCase(unittest.TestCase):
-    refresh_db_before_test=True
+    refresh_db_before_test = True
 
-    def __init__( self, wtf ):
+    def __init__(self, wtf):
         super().__init__(wtf)
 
     def refresh_db(self):

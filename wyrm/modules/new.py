@@ -1,9 +1,13 @@
 import os, sys
 import shutil
-aliases=["n"]
-brief="create a new project"
+
+aliases = ["n"]
+brief = "create a new project"
+
+
 def usage(argv0):
     print("Usage: {} new project_name [dirname]".format(argv0))
+
 
 def execute(argv, argv0, engine):
     import lib
@@ -12,7 +16,7 @@ def execute(argv, argv0, engine):
         usage(argv0)
         sys.exit(1)
     name = argv[0]
-    dirname= argv[-1]
+    dirname = argv[-1]
     gen_path = lib.get_template("new")
     if not gen_path:
         print("ERROR: can't locate generator templates!")
@@ -33,7 +37,7 @@ def execute(argv, argv0, engine):
                 os.unlink(path)
         print("coping files...")
         for entry in os.listdir(gen_path):
-            src  = os.path.join(gen_path, entry)
+            src = os.path.join(gen_path, entry)
             dest = os.path.join(dirname, entry)
             if os.path.isdir(src):
                 shutil.copytree(src, dest)
@@ -42,4 +46,3 @@ def execute(argv, argv0, engine):
     else:
         print("coping files...")
         shutil.copytree(gen_path, dirname)
-

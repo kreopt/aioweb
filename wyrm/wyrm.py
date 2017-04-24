@@ -3,42 +3,43 @@ import sys
 import os
 import importlib
 import inflect
+
 os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
-sys.path.append( os.getcwd() )
-sys.path.append( os.path.dirname(__file__) )
+sys.path.append(os.getcwd())
+sys.path.append(os.path.dirname(__file__))
 plague = inflect.engine()
 
-commands={}
-aliases={}
+commands = {}
+aliases = {}
 modules = []
-modules_dir= os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")
+modules_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")
 briefs = {}
 
-modules=[]
+modules = []
 if os.path.exists(os.path.abspath("settings.py")):
-    #sys.path.append( modules_dir )
+    # sys.path.append( modules_dir )
     for root, subdirs, files in os.walk(modules_dir):
-        mods = [ f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__") ]
+        mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
         if mods:
             r = root.replace(modules_dir, '').replace('/', '.')
             if r.startswith('.'): r = r[1:]
             if r:
-                modules += [r+'.' + module for module in mods]
+                modules += [r + '.' + module for module in mods]
             else:
                 modules += mods
     commands["g"] = "generate"
     commands["d"] = "destroy"
     commands["delete"] = "destroy"
-else: 
-    modules=['new']
-    sys.path.append( modules_dir )
+else:
+    modules = ['new']
+    sys.path.append(modules_dir)
     for root, subdirs, files in os.walk(os.path.join(modules_dir, "help")):
-        mods = [ f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__") ]
+        mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
         if mods:
             r = root.replace(modules_dir, '').replace('/', '.')
             if r.startswith('.'): r = r[1:]
             if r:
-                modules += [r+'.' + module for module in mods]
+                modules += [r + '.' + module for module in mods]
             else:
                 modules += mods
 
@@ -56,7 +57,7 @@ for module in modules:
 
     if '.' in module:
         co = commands
-        mods,module_name = module.rsplit(".", 1)
+        mods, module_name = module.rsplit(".", 1)
         for sm in mods.split('.'):
             if co.get(sm) == None:
                 co[sm] = {}
@@ -69,18 +70,19 @@ for module in modules:
         for alias in aliases:
             commands[alias] = module
 
+
 def print_cmd(co, n=1, addr=[]):
     for k in sorted(co.keys(), key=lambda k: ("zzzz" + k) if type(co[k]) == dict else k):
         if type(co[k]) == dict:
-            if n==1: print("")
+            if n == 1: print("")
             aliases = [a for a in co.keys() if co[a] == k]
-            print("  "*n+ ", ".join([k]+aliases))
-            print_cmd(co[k], n+1, addr+[k])
+            print("  " * n + ", ".join([k] + aliases))
+            print_cmd(co[k], n + 1, addr + [k])
         elif type(co[k]) != str:
             aliases = [a for a in co.keys() if co[a] == k]
-            ln = "  "*n+ ", ".join([k]+aliases)
-            ln+=' '*(30-len(ln))
-            ln+=briefs['.'.join(addr+[k])]
+            ln = "  " * n + ", ".join([k] + aliases)
+            ln += ' ' * (30 - len(ln))
+            ln += briefs['.'.join(addr + [k])]
             print(ln)
 
 
@@ -88,36 +90,38 @@ def usage(argv0, co=None, addr=[]):
     print("Usage: " + argv0 + " <command> [-h|--help] [args]")
     print("")
     if addr:
-        print('"wyrm {}" supports these subcommands:'.format(' '.join(addr)) )
+        print('"wyrm {}" supports these subcommands:'.format(' '.join(addr)))
     else:
         print("Wyrm supports these commands:")
     print_cmd(commands if not co else co, addr=addr)
     sys.exit(1)
 
+
 def execute(argv=None):
     if not argv:
-        argv=sys.argv
+        argv = sys.argv
     if len(argv) == 1:
         usage(argv[0])
     n = 1
     co = commands
     command = commands.get(argv[1])
-    addr=[]
+    addr = []
     while not callable(command):
         if command == None:
             usage(argv[0])
         elif type(command) == str:
-            argv[n]=command
-            command=co[command]
+            argv[n] = command
+            command = co[command]
         else:
             addr.append(argv[n])
             co = command
-            n+=1
+            n += 1
             if n == len(argv):
                 usage(argv[0], command, addr)
-            command= command[argv[n]]
+            command = command[argv[n]]
 
     engine = {"commands": commands, "aliases": aliases}
-    command(argv[n+1:], argv[0], engine)
+    command(argv[n + 1:], argv[0], engine)
+
 
 if __name__ == '__main__': execute()

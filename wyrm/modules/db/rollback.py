@@ -1,17 +1,22 @@
 import sys
 import os
 
-brief="rollback the database"
+brief = "rollback the database"
+
+
 def usage(argv0):
     print("Usage: {} db rollback".format(argv0))
     sys.exit(1)
 
-aliases=['r']
+
+aliases = ['r']
+
+
 def execute(argv, argv0, engine):
     import lib, importlib
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
-    sys.path.append( os.getcwd() )
+    sys.path.append(os.getcwd())
     environment = os.getenv("AIOWEB_ENV", "development")
 
     if '-h' in argv or '--help' in argv:
@@ -21,7 +26,7 @@ def execute(argv, argv0, engine):
 
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
     print("[ app ]")
-    migrations_dir=lib.dirs(settings, format=["migrations"], check=True)
+    migrations_dir = lib.dirs(settings, format=["migrations"], check=True)
     if migrations_dir:
         os.system("echo y | orator migrate:rollback -c %(base)s/config/database.yml -p %(egg)s -d %(environment)s" % {
             'environment': environment,
@@ -31,4 +36,3 @@ def execute(argv, argv0, engine):
     else:
         print("No migrations found")
     os.chdir(oldcwd)
-

@@ -1,17 +1,22 @@
 import sys
 import os
 
-brief="migrate the database"
+brief = "migrate the database"
+
+
 def usage(argv0):
     print("Usage: {} db migrate".format(argv0))
     sys.exit(1)
 
-aliases=['m']
+
+aliases = ['m']
+
+
 def execute(argv, argv0, engine):
     import lib, importlib
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
-    sys.path.append( os.getcwd() )
+    sys.path.append(os.getcwd())
     environment = os.getenv("AIOWEB_ENV", "development")
 
     if '-h' in argv or '--help' in argv:
@@ -23,7 +28,7 @@ def execute(argv, argv0, engine):
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
 
     print("[ app ]")
-    migrations_dir=lib.dirs(settings, format=["migrations"])
+    migrations_dir = lib.dirs(settings, format=["migrations"])
 
     os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s" % {
         'environment': environment,
@@ -31,4 +36,3 @@ def execute(argv, argv0, engine):
         'migrations_dir': migrations_dir,
     })
     os.chdir(oldcwd)
-
