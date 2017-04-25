@@ -13,9 +13,9 @@ from .core import router
 from .conf import settings
 
 class Application(AioApp):
-    def __init__(self, *, logger=web_logger, loop=None, router=None, debug=...):
+    def __init__(self, *, logger=web_logger, loop=None, router=None, config=ConfigReader('config/config.yml'), debug=...):
         super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
-        self.conf = ConfigReader('config/config.yml')
+        self.conf = config
         self.modules = set()
 
     async def setup(self):
@@ -40,7 +40,7 @@ class Application(AioApp):
     async def _handle(self, request):
         http_method = request.headers.get('X-Http-Method-Override', '').upper()
         overriden = request.clone(method=http_method if http_method else request.method,
-                                  rel_url=request.rel_url.path.rstrip('/')
+                                  rel_url=request.rel_url.path.rstrip('/') if request.rel_url.path != '/' else request.rel_url.path
                                   )
 
         return await super()._handle(overriden)

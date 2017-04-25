@@ -1,7 +1,7 @@
 import aioweb.core
 
 
-class AdminController(aioweb.core.BaseController):
+class AdminController(aioweb.core.Controller):
 
     def __init__(self, app):
         super().__init__(app)

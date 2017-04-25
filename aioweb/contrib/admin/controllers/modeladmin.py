@@ -7,7 +7,7 @@ import aioweb.core
 from aioweb.admin import MODELS, form
 
 
-class ModeladminController(aioweb.core.BaseController):
+class ModeladminController(aioweb.core.Controller):
 
     def __init__(self, app):
         super().__init__(app)

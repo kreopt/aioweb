@@ -9,12 +9,11 @@ class CreateUsersTable(Migration):
         """
         with self.schema.create('users') as table:
             table.increments('id')
-            table.timestamps()
             table.string('username', 50).unique()
-            table.string('password', 256)
+            table.string('password', 512)
             table.string('email', 50).unique()
-            table.boolean('disabled').default(False)
 
+            table.timestamps()
 
     def down(self):
         """

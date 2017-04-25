@@ -8,20 +8,20 @@ from aioweb.modules import template
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
 
 
-class BaseController(object):
+class Controller(object):
     EMPTY_LAYOUT = 'no_layout.html'
 
     def __init__(self, request):
         self.app = request.app
         self.request = request
         self._private = PrivateData(
-            search_path = '',
-            controller = extract_name_from_class(self.__class__.__name__, 'Controller'),
-            layout = None,
-            template = None
+            search_path='',
+            controller=extract_name_from_class(self.__class__.__name__, 'Controller'),
+            layout=None,
+            template=None
         )
         if not hasattr(self.__class__, 'LAYOUT'):
-            setattr(self.__class__, 'LAYOUT', BaseController.EMPTY_LAYOUT)
+            setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
     @property
     def layout(self):
@@ -46,14 +46,14 @@ class BaseController(object):
     async def _dispatch(self, action, actionName):
 
         self._private.layout = getattr(self.__class__,
-                                       'LAYOUT') if not self.request.is_ajax() else BaseController.EMPTY_LAYOUT
+                                       'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
         self._private.template = os.path.join(self._private.search_path, self._private.controller,
                                               '%s.html' % actionName)
         # TODO: something better
         for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
             if actionName not in beforeAction[ProcessDescriptor.EXCEPT] and \
-                (actionName in beforeAction[ProcessDescriptor.ONLY] or
-                     len(beforeAction[ProcessDescriptor.ONLY]) == 0):
+                    (actionName in beforeAction[ProcessDescriptor.ONLY] or
+                             len(beforeAction[ProcessDescriptor.ONLY]) == 0):
                 res = await awaitable(beforeAction[ProcessDescriptor.FN](self))
 
                 if isinstance(res, web.Response):

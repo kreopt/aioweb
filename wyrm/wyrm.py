@@ -2,9 +2,12 @@
 import sys
 import os
 import importlib
+import traceback
+
 import inflect
 
 os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
+sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
 sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__))
 plague = inflect.engine()
@@ -16,7 +19,13 @@ modules_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules"
 briefs = {}
 
 modules = []
-if os.path.exists(os.path.abspath("settings.py")):
+try:
+    from aioweb.conf import settings
+except ImportError as e:
+    traceback.print_exc()
+    settings = None
+
+if settings:
     # sys.path.append( modules_dir )
     for root, subdirs, files in os.walk(modules_dir):
         mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
@@ -107,7 +116,8 @@ def execute(argv=None):
     command = commands.get(argv[1])
     addr = []
     while not callable(command):
-        if command == None:
+
+        if command is None:
             usage(argv[0])
         elif type(command) == str:
             argv[n] = command
@@ -124,4 +134,5 @@ def execute(argv=None):
     command(argv[n + 1:], argv[0], engine)
 
 
-if __name__ == '__main__': execute()
+if __name__ == '__main__':
+    execute()

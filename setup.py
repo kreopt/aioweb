@@ -51,7 +51,7 @@ setup(name='aioweb',
       author_email='kreopt@gmail.com',
       url='https://github.com/kreopt/aioweb/',
       # scripts=['bin/wyrm'],
-      packages=find_packages(include=('aioweb',)),
+      packages=find_packages(exclude=('test_project', 'tests')),
       include_package_data=True,
       install_requires=requirements,
       extras_require={

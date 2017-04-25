@@ -47,7 +47,7 @@ def default_layout(layout_name):
 def template(template_name):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            aioweb.core.controller.BaseController.template.fset(self, template_name)
+            aioweb.core.controller.Controller.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
         return decorated
     return decorator
@@ -55,7 +55,7 @@ def template(template_name):
 def layout(template_name):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
-            aioweb.core.controller.BaseController.template.fset(self, template_name)
+            aioweb.core.controller.Controller.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
         return decorated
     return decorator

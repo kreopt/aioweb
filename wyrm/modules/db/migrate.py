@@ -35,4 +35,17 @@ def execute(argv, argv0, engine):
         'base': settings.BASE_DIR,
         'migrations_dir': migrations_dir,
     })
+
+    for app in settings.APPS:
+        print("[ %s ]" % app)
+        migrations_dir = lib.dirs(settings, format=["migrations"], app=app)
+        print("%(migrations_dir)s" % {'migrations_dir': migrations_dir})
+
+        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s" % {
+            'environment': environment,
+            'base': settings.BASE_DIR,
+            'migrations_dir': migrations_dir,
+        })
+
     os.chdir(oldcwd)
+

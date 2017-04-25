@@ -1,16 +1,16 @@
 import importlib
+import inspect
 
 from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
-from aioweb.core.router.context import DefaultContext, AuthenticatedContext
 from aioweb.middleware import PRE_DISPATCHERS
-from aioweb.util import snake_to_camel, extract_name_from_class, awaitable
+from aioweb.util import extract_name_from_class, awaitable, import_controller, camel_to_snake
+from aioweb.core.model import Model
 from .mutidirstatic import StaticMultidirResource
 
 
 class Router(object):
-
     def __init__(self, app, name='', prefix='', parent=None, package='app', pre_dispatchers=tuple()):
         self.app = app
         self.name = name
@@ -54,19 +54,15 @@ class Router(object):
         prefixes.reverse()
         url = '/'.join(prefixes).replace('///', '/').replace('//', '/')
         if url.endswith('/'):
-            url=url[:-1]
+            url = url[:-1]
         return url
 
     def _import_controller(self, name):
         if type(name) != str:
             return name
-        ctrl_class_name = snake_to_camel("%s_controller" % name)
 
-        mod = importlib.import_module("%s.controllers.%s" % (self.package, name))
+        ctrl_class, ctrl_class_name = import_controller(name, package=self.package)
 
-        ctrl_class = getattr(mod, ctrl_class_name)
-
-        ctrl_class_name = '.'.join((self.package, name))
         if ctrl_class_name not in self.app.controllers:
             self.app.controllers[ctrl_class_name] = ctrl_class
             self.app.controllers[ctrl_class_name].search_path = self.view_prefix
@@ -126,7 +122,8 @@ class Router(object):
         gen_name = ''
         try:
             [url, handler, gen_name] = self._resolve_handler(url, handler)
-            self.app.router.add_route(method, self._get_baseurl(url), handler, name=self._get_namespace(name if name else gen_name),
+            self.app.router.add_route(method, self._get_baseurl(url), handler,
+                                      name=self._get_namespace(name if name else gen_name),
                                       **kwargs)
         except Exception as e:
             web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else gen_name, e))
@@ -134,7 +131,6 @@ class Router(object):
         self._currentName = self._get_namespace(name if name else gen_name)
         self._currentPrefix = url
         return self
-
 
     def head(self, url, handler=None, name=None, **kwargs):
         return self._add_route(hdrs.METH_HEAD, url, handler, name, **kwargs)
@@ -194,7 +190,7 @@ class Router(object):
 
     def proxy(self, url=None, is_action=False, name=None):
         if is_action:
-            [url,_,gen_name] = self._resolve_handler(url)
+            [url, _, gen_name] = self._resolve_handler(url)
         else:
             gen_name = ''
         self._currentName = self._get_namespace(name if name else gen_name)
@@ -246,6 +242,30 @@ class Router(object):
         self._currentName = ''
         self._currentPrefix = ''
         self._currentPackage = ''
+
+
+def make_route(*args, action=None):
+    class_found = False
+    route = ['']
+    for arg in args:
+        if inspect.isclass(arg):
+            class_found = True
+            if issubclass(arg, Model):
+                route.append(camel_to_snake(arg.__name__))
+            else:
+                raise AssertionError('You can only pass subclasses of aioweb.core.Model')
+        else:
+            if class_found:
+                raise AssertionError('Model class name can only be appear at the end')
+            if isinstance(arg, Model):
+                route.append(camel_to_snake(arg.__class__.__name__))
+                route.append(getattr(arg, arg.__primary_key__))
+            else:
+                raise AssertionError('You can only pass instances of aioweb.core.Model subclasses')
+    if not class_found and action:
+        route.append(action)
+    return '/'.join(route)
+
 
 def setup_routes(app):
     from config import routes

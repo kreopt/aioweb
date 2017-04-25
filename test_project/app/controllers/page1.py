@@ -14,7 +14,7 @@ def set_group(ctrl):
 @disable_csrf()
 # @authenticated(only=tuple(), exclude=tuple())
 @default_layout('base.html')
-class Page1Controller(aioweb.core.BaseController):
+class Page1Controller(aioweb.core.Controller):
 
     @csrf_exempt
     async def index(self):

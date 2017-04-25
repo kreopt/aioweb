@@ -18,7 +18,7 @@ from aioweb.db import init_db
 def login_required(login_url='/auth/', login_route=''):
     def wrapper(func):
         async def wrapped(p, *args):
-            if isinstance(p, aioweb.core.BaseController):
+            if isinstance(p, aioweb.core.Controller):
                 request = p.request
             else:
                 request = p

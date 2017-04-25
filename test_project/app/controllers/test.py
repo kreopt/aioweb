@@ -1,11 +1,12 @@
 import aioweb.core
+from aioweb.core.controller.decorators import default_layout
 
 
-class TestController(aioweb.core.BaseController):
+@default_layout('base.html')
+class TestController(aioweb.core.Controller):
 
     def __init__(self, app):
         super().__init__(app)
-        self._defaultLayout = 'base.html'
 
     async def index(self):
         return {'test': 'It works!'}

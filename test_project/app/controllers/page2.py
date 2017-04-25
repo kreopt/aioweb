@@ -1,7 +1,7 @@
 import aioweb.core
 
 
-class Page2Controller(aioweb.core.BaseController):
+class Page2Controller(aioweb.core.Controller):
 
     def __init__(self, request):
         super().__init__(request)

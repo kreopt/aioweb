@@ -29,12 +29,26 @@ async def awaitable(result):
         return await result
     return result
 
+
 def package_path(pkg):
     return os.path.dirname(importlib.util.find_spec(pkg).origin)
+
 
 def get_own_properties(cls, predicate=inspect.isfunction):
     return [e for e in inspect.getmembers(cls, inspect.isfunction) if e[0] in cls.__dict__]
 
+
+def import_controller(name, package='app'):
+    if type(name) != str:
+        raise AssertionError('controller name should be string')
+    ctrl_class_name = snake_to_camel("%s_controller" % name)
+
+    mod = importlib.import_module("%s.controllers.%s" % (package, name))
+
+    ctrl_class = getattr(mod, ctrl_class_name)
+
+    ctrl_class_name = '.'.join((package, name))
+    return ctrl_class, ctrl_class_name
 
 class PrivateData(object):
     def __init__(self, **kwargs) -> None:
