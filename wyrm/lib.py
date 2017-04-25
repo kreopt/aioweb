@@ -7,7 +7,7 @@ import inflection
 
 vanila_dir = "share/aioweb/generators"
 search_paths = [
-    os.path.expanduser('~'),
+    os.path.join(os.path.expanduser('~'), '.local'),
     '/usr/local/',
     '/usr/'
 ]
@@ -20,6 +20,13 @@ search_paths = [
 # def get_template
 # def insert_in_python
 # def indent
+
+def locate_file(fname):
+    for search_path in search_paths:
+        path = os.path.join(search_path, fname)
+        if os.path.exists(path):
+            return path
+    return None
 
 def get_dbconfig(settings):
     with open(os.path.join(settings.BASE_DIR, "config/database.yml"), "r") as f:
