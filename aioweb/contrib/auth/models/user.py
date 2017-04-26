@@ -18,7 +18,8 @@ class User(Model, AbstractUser):
         self.set_raw_attribute('password', sha256_crypt.hash(value))
 
     def can(self, permission):
-        pass
+
+        return False
 
     def __str__(self):
         return self.username

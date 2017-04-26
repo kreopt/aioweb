@@ -30,12 +30,15 @@ def get_token(request):
     cookietoken = sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
     return make_csrf_token(unsalt_cipher_token(cookietoken) if cookietoken else None)
 
+
 def set_token(response, token):
     response.set_cookie(CSRF_COOKIE_NAME, token)
     response.headers[CSRF_HEADER_NAME] = token
 
+
 def sanitize_request_token(request):
     return sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
+
 
 async def middleware(app, handler):
     async def middleware_handler(request):
@@ -50,15 +53,17 @@ async def middleware(app, handler):
                 set_token(e, request.csrf_token)
             raise e
 
-        if not cookie_token:
+        if not cookie_token or request.get('just_authenticated'):
             set_token(response, request.csrf_token)
 
         return response
 
     return middleware_handler
 
+
 def setup(app):
     app[JINJA_APP_KEY].add_extension(CsrfTag)
+
 
 async def pre_dispatch(request, controller, actionName):
     reason = None
@@ -68,7 +73,7 @@ async def pre_dispatch(request, controller, actionName):
 
         action = getattr(controller, actionName)
 
-        if not getattr(action ,'csrf_disabled', False):
+        if not getattr(action, 'csrf_disabled', False):
             check_ok = False
             cookietoken = sanitize_request_token(request)
 

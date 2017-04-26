@@ -2,7 +2,6 @@ import importlib
 import os
 import traceback
 
-import yaml
 from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
 from yarl import URL
@@ -30,7 +29,7 @@ class Application(AioApp):
             except (ImportError, AttributeError) as e:
                 traceback.print_exc()
 
-        setup_middlewares(self)
+        await setup_middlewares(self)
         router.setup_routes(self)
 
     def has_module(self, module):
@@ -57,7 +56,7 @@ def run_app(app, *,
         'port': 8000
     }
     conf_reader = ConfigReader('config/server.yml')
-    conf.update(conf_reader.config)
+    conf.update(conf_reader.config.get(app['env']))
 
     host = conf['host']
     port = conf['port']

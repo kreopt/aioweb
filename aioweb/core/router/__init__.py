@@ -1,11 +1,12 @@
 import importlib
 import inspect
 
+import inflection
 from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
 from aioweb.middleware import PRE_DISPATCHERS
-from aioweb.util import extract_name_from_class, awaitable, import_controller, camel_to_snake
+from aioweb.util import extract_name_from_class, awaitable, import_controller
 from aioweb.core.model import Model
 from .mutidirstatic import StaticMultidirResource
 
@@ -251,14 +252,14 @@ def make_route(*args, action=None):
         if inspect.isclass(arg):
             class_found = True
             if issubclass(arg, Model):
-                route.append(camel_to_snake(arg.__name__))
+                route.append(inflection.underscore(arg.__name__))
             else:
                 raise AssertionError('You can only pass subclasses of aioweb.core.Model')
         else:
             if class_found:
                 raise AssertionError('Model class name can only be appear at the end')
             if isinstance(arg, Model):
-                route.append(camel_to_snake(arg.__class__.__name__))
+                route.append(inflection.underscore(arg.__class__.__name__))
                 route.append(getattr(arg, arg.__primary_key__))
             else:
                 raise AssertionError('You can only pass instances of aioweb.core.Model subclasses')

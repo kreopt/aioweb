@@ -2,6 +2,7 @@ import importlib
 
 from aiohttp.log import web_logger
 
+from aioweb.util import awaitable
 from .is_ajax import middleware as is_ajax
 from .csrf import middleware as csrf_token, setup as csrf_setup, pre_dispatch as csrf_pre_dispatch
 
@@ -9,7 +10,7 @@ from aioweb.conf import settings
 
 PRE_DISPATCHERS = []
 
-def setup_middlewares(app):
+async def setup_middlewares(app):
     app.middlewares.append(is_ajax)
     app.middlewares.append(csrf_token)
     csrf_setup(app)
@@ -25,7 +26,7 @@ def setup_middlewares(app):
                 pass
             try:
                 setup = getattr(mod, 'setup')
-                setup(app)
+                await awaitable(setup(app))
             except AttributeError:
                 pass
             try:

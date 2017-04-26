@@ -4,7 +4,6 @@ from orator.exceptions.query import QueryException
 
 from aioweb.admin import form
 from aioweb.admin.form import FieldInstance
-from aioweb.auth import login_required
 from aioweb.render import template
 import inspect
 

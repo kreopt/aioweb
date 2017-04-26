@@ -11,7 +11,7 @@ class CreateUserPermissionTable(Migration):
             table.integer('user_id').unsigned()
             table.foreign('user_id').references('id').on('users')
             table.integer('permission_id').unsigned()
-            table.foreign('permission_id').references('id').on('permissions')
+            table.foreign('permission_id').references('id').on('permissions').on_delete('cascade')
             table.primary(['user_id', 'permission_id'])
 
     def down(self):
