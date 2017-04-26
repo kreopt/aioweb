@@ -1,5 +1,6 @@
 import importlib
 
+from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 from orator.exceptions.orm import ModelNotFound
 from passlib.hash import sha256_crypt
@@ -52,6 +53,17 @@ async def authenticate(request, username, password, remember=False):
         raise ReferenceError(e)
 
     return user
+
+
+def check_logged(redirect_to=None):
+    async def fn(request, controller, actionName):
+        if not request.user.is_authenticated():
+            if redirect_to:
+                raise web.HTTPFound(redirect_to)
+            else:
+                raise web.HTTPForbidden(reason='Unauthorized')
+
+    return fn
 
 
 async def remember_user(request):

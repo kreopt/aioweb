@@ -30,7 +30,7 @@ def import_controller(name, package='app'):
         raise AssertionError('controller name should be string')
     ctrl_class_name = inflection.camelize("%s_controller" % name)
 
-    mod = importlib.import_module("%s.controllers.%s" % (package, name))
+    mod = importlib.import_module("%s.controllers.%s" % (package if package else 'app', name))
 
     ctrl_class = getattr(mod, ctrl_class_name)
 
