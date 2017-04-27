@@ -36,6 +36,15 @@ class DBAuthorizationPolicy(AbstractAuthorizationPolicy):
         return USER_MODEL.can(permission)
 
 
+class AuthError(Exception):
+    def __init__(self, reason, *args) -> None:
+        super().__init__(reason, *args)
+        self.reason = reason
+
+    def __str__(self):
+        return self.reason
+
+
 async def authenticate(request, username, password, remember=False):
     try:
         user = get_user_from_db(username)
@@ -47,10 +56,10 @@ async def authenticate(request, username, password, remember=False):
                 remember_user(request)
         else:
             setattr(request, 'user', AbstractUser())
-            raise PermissionError("Password does not match")
+            raise AuthError("Password does not match")
     except ModelNotFound as e:
         setattr(request, 'user', AbstractUser())
-        raise ReferenceError(e)
+        raise AuthError("User not found")
 
     return user
 
