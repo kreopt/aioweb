@@ -29,7 +29,7 @@ class Controller(object):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
     def url_for(self, action):
-        return self.router.resolve_action(self._private.controller, action)
+        return self.router.resolve_action(self._private.controller, action)[0]
 
     @property
     def session(self):
@@ -83,11 +83,15 @@ class Controller(object):
                 if isinstance(res, web.Response):
                     return res
 
-        res = await awaitable(action())
+        try:
+            res = await awaitable(action())
+        except Exception as e:
+            self._private.flash.sync()
+            raise e
 
-        self._private.flash.sync()
 
         if isinstance(res, web.Response):
+            self._private.flash.sync()
             return res
 
         if res is None:
@@ -96,6 +100,10 @@ class Controller(object):
         accept = self.request.headers['accept']
 
         if accept.startswith('application/json'):
+            self._private.flash.sync()
             return web.json_response(res)
 
-        return self.render(res)
+        response = self.render(res)
+
+        self._private.flash.sync()
+        return response

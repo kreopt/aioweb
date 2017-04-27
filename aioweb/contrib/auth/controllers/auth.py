@@ -21,7 +21,7 @@ class AuthController(aioweb.core.Controller):
     async def login(self):
         data = await self.request.post()
         try:
-            authenticate(self.request, data.get('username'), data.get('password'), remember=True)
+            await authenticate(self.request, data.get('username'), data.get('password'), remember=True)
         except AuthError as e:
             if self.request.is_ajax():
                 raise web.HTTPForbidden(reason=str(e))
