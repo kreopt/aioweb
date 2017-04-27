@@ -5,7 +5,7 @@ def run(*args, **kwargs):
     name = input('Enter user name: ')
     mail = input('Enter email: ')
     pass1 = getpass.getpass('Enter password: ')
-    pass2 = getpass.getpass('Repeate password: ')
+    pass2 = getpass.getpass('Repeat password: ')
 
     if pass1 == pass2:
         from aioweb.contrib.auth.models.user import User
