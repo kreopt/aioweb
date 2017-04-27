@@ -2,26 +2,46 @@ import os
 
 from aiohttp import web
 from aiohttp_jinja2 import APP_KEY
+from aiohttp_session import get_session
 
 from aioweb.core.controller.decorators import ProcessDescriptor
 from aioweb.modules import template
+from aioweb.modules.session.flash import Flash
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
 
 
 class Controller(object):
     EMPTY_LAYOUT = 'no_layout.html'
 
-    def __init__(self, request):
+    def __init__(self, request, router):
         self.app = request.app
         self.request = request
         self._private = PrivateData(
             search_path='',
             controller=extract_name_from_class(self.__class__.__name__, 'Controller'),
             layout=None,
-            template=None
+            template=None,
+            router=router,
+            session=None,
+            flash=None
         )
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
+
+    def url_for(self, action):
+        return self.router.resolve_action(self._private.controller, action)
+
+    @property
+    def session(self):
+        return self._private.session
+
+    @property
+    def flash(self):
+        return self._private.flash
+
+    @property
+    def router(self):
+        return self._private.router
 
     @property
     def layout(self):
@@ -49,6 +69,10 @@ class Controller(object):
                                        'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
         self._private.template = os.path.join(self._private.search_path, self._private.controller,
                                               '%s.html' % actionName)
+
+        self._private.session = await get_session(self.request)
+        self._private.flash = Flash(self._private.session)
+
         # TODO: something better
         for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
             if actionName not in beforeAction[ProcessDescriptor.EXCEPT] and \
@@ -61,8 +85,13 @@ class Controller(object):
 
         res = await awaitable(action())
 
+        self._private.flash.sync()
+
         if isinstance(res, web.Response):
             return res
+
+        if res is None:
+            res = {}
 
         accept = self.request.headers['accept']
 
