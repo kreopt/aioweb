@@ -17,15 +17,19 @@ except ImportError:
 REQUEST_KEY = 'AIOWEB_AUTH'
 
 
-def get_user_from_db(login):
+def get_user_by_name(login):
     return USER_MODEL.where_raw('username=?', [login]).first_or_fail()
+
+
+def get_user_by_id(id):
+    return USER_MODEL.where_raw('id=?', [id]).first_or_fail()
 
 
 class DBAuthorizationPolicy(AbstractAuthorizationPolicy):
     async def authorized_userid(self, identity):
         # TODO: check cache
         try:
-            user = get_user_from_db(identity)
+            user = get_user_by_name(identity)
             return user.id
         except ModelNotFound:
             return None
@@ -47,13 +51,13 @@ class AuthError(Exception):
 
 async def authenticate(request, username, password, remember=False):
     try:
-        user = get_user_from_db(username)
+        user = get_user_by_name(username)
         if sha256_crypt.verify(password, user.password):
             setattr(user, 'is_authenticated', lambda: True)
             request['just_authenticated'] = True
             setattr(request, 'user', user)
             if remember:
-                remember_user(request)
+                await remember_user(request)
         else:
             setattr(request, 'user', AbstractUser())
             raise AuthError("Password does not match")
@@ -75,13 +79,16 @@ def check_logged(redirect_to=None):
     return fn
 
 
-async def remember_user(request):
-    if type(request[REQUEST_KEY]) != dict:
+def check_request_key(request):
+    if not REQUEST_KEY in request or type(request[REQUEST_KEY]) != dict:
         request[REQUEST_KEY] = {}
+
+
+async def remember_user(request):
+    check_request_key(request)
     request[REQUEST_KEY]['remember'] = True
 
 
 async def forget_user(request):
-    if type(request[REQUEST_KEY]) != dict:
-        request[REQUEST_KEY] = {}
+    check_request_key(request)
     request[REQUEST_KEY]['forget'] = True

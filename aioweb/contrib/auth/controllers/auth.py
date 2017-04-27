@@ -12,7 +12,7 @@ class AuthController(aioweb.core.Controller):
         if self.request.user.is_authenticated():
             redirect_url = self.request.query.get('redirect_to')
             if not redirect_url:
-                redirect_url = getattr(settings, 'AUTH_BASE_URL', '/')
+                redirect_url = getattr(settings, 'AUTH_PRIVATE_URL', '/')
             raise web.HTTPFound(redirect_url)
 
     async def index(self):
@@ -33,4 +33,5 @@ class AuthController(aioweb.core.Controller):
         raise web.HTTPForbidden(reason='Unauthenticated')  # This should not happen
 
     async def logout(self):
-        forget_user(self.request)
+        await forget_user(self.request)
+        raise web.HTTPFound(getattr(settings, 'AUTH_GUEST_URL', '/'))
