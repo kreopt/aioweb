@@ -77,10 +77,10 @@ def dirs(settings, app=None, format=[], check=False):
     ret["tests"] = os.path.join(base_dir, "tests")
     ret["factories"] = os.path.join(base_dir, "tests/factories")
     ret["models"] = os.path.join(base_dir, "models" if app else "app/models")
-    ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["controllers"] = os.path.join(base_dir, "controllers" if app else "app/controllers")
     ret["views"] = os.path.join(base_dir, "views" if app else "app/views")
     ret["migrations"] = os.path.join(base_dir, "migrations" if app else "db/migrations")
+    ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["tests_controllers"] = os.path.join(base_dir, "tests/controllers") if not app else None
     if check:
         for k in ret.keys():

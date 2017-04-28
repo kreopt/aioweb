@@ -1,7 +1,7 @@
 import sys
 import os
 
-brief = "create an unittest for model"
+brief = "create a test for model"
 
 
 def usage(argv0):

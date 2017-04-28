@@ -22,7 +22,7 @@ modules = []
 try:
     from aioweb.conf import settings
 except ImportError as e:
-    traceback.print_exc()
+    #traceback.print_exc()
     settings = None
 
 if settings:
@@ -38,6 +38,7 @@ if settings:
                 modules += mods
     commands["g"] = "generate"
     commands["d"] = "destroy"
+    commands["t"] = "test"
     commands["delete"] = "destroy"
 else:
     modules = ['new']

@@ -3,7 +3,6 @@ import sys
 import os
 
 brief = "create new user"
-aliases = ["c", "shell"]
 
 
 def execute(argv, argv0, engine):

@@ -1,11 +1,11 @@
 import sys
 import os
 
-brief = "delete the controller"
+brief = "delete a test for controller"
 
 
 def usage(argv0):
-    print("Usage: {} destroy controller CONTROLLER_NAME".format(argv0))
+    print("Usage: {} destroy test controller CONTROLLER_NAME".format(argv0))
     sys.exit(1)
 
 
@@ -21,17 +21,11 @@ def execute(argv, argv0, engine):
     if len(argv) == 0 or '-h' in argv or '--help' in argv:
         usage(argv0)
 
-    controllers_dir, views_dir = lib.dirs(settings, format=["controllers", "views"])
+    controllers_dir = lib.dirs(settings, format=["tests_controllers"])
     controller = inflection.underscore(argv[0])
-    views_dir = os.path.join(views_dir, controller)
     controller_path = os.path.join(controllers_dir, controller + ".py")
 
     if os.path.exists(controller_path):
         print("removing " + controller_path)
         os.unlink(controller_path)
 
-    if os.path.exists(views_dir):
-        print("removing " + views_dir)
-        shutil.rmtree(views_dir)
-
-    engine["commands"]["destroy"]["test"]["controller"](argv, argv0, engine)
