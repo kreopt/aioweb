@@ -9,9 +9,29 @@ from aioweb.conf import settings
 
 from orator import Model
 
-async def init_db(app):
+
+def get_dbconfig():
     conf = ConfigReader('config/database.yml')
-    db_conf = conf.get('databases')
+    dbconfig = conf.get('databases')
+
+    environment = os.getenv("AIOWEB_ENV", dbconfig["default"])
+    dbconfig["default"] = environment
+    if dbconfig[environment]["driver"] == "sqlite":
+        dbconfig[environment]["database"] = os.path.join(settings.BASE_DIR,
+                                                         "db/{}".format(dbconfig[environment]["database"]))
+    return dbconfig
+
+
+def init_db_engine():
+    dbconfig = get_dbconfig()
+
+    if Model.get_connection_resolver():
+        Model.get_connection_resolver().disconnect()
+    Model.set_connection_resolver(DatabaseManager(dbconfig))
+
+async def init_db(app):
+    db_conf = get_dbconfig()
+
     if not db_conf:
         raise ReferenceError('Database configuration does not contain databases domain')
     # db_conf = db_conf.get(conf.get('default', 'development'))

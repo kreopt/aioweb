@@ -36,7 +36,7 @@ async def middleware(app, handler):
             raise e
         except Exception as e:
             await process_auth(request, e)
-            raise web.HTTPInternalServerError(reason='Unknown error')
+            raise e#web.HTTPInternalServerError(reason='Unknown error')
         else:
             await process_auth(request, response)
         return response

@@ -18,7 +18,10 @@ REQUEST_KEY = 'AIOWEB_AUTH'
 
 
 def get_user_by_name(login):
-    return USER_MODEL.where_raw('username=?', [login]).first_or_fail()
+    try:
+        return USER_MODEL.where_raw('username=?', [login]).first_or_fail()
+    except ModelNotFound:
+        return None
 
 
 def get_user_by_id(id):
@@ -28,10 +31,10 @@ def get_user_by_id(id):
 class DBAuthorizationPolicy(AbstractAuthorizationPolicy):
     async def authorized_userid(self, identity):
         # TODO: check cache
-        try:
-            user = get_user_by_name(identity)
+        user = get_user_by_name(identity)
+        if user:
             return user.id
-        except ModelNotFound:
+        else:
             return None
 
     async def permits(self, identity, permission, context=None):
@@ -49,10 +52,23 @@ class AuthError(Exception):
         return self.reason
 
 
-async def authenticate(request, username, password, remember=False):
-    try:
-        user = get_user_by_name(username)
+class AuthValidator(object):
+
+    def __init__(self):
+        self.reason = "check failed"
+
+    def validate(self, user):
+        return False
+
+
+
+async def authenticate(request, username, password, remember=False, validators=tuple()):
+    user = get_user_by_name(username)
+    if user:
         if sha256_crypt.verify(password, user.password):
+            for validator in validators:
+                if not validator.validate(user):
+                    raise AuthError(validator.reason)
             setattr(user, 'is_authenticated', lambda: True)
             request['just_authenticated'] = True
             setattr(request, 'user', user)
@@ -61,7 +77,7 @@ async def authenticate(request, username, password, remember=False):
         else:
             setattr(request, 'user', AbstractUser())
             raise AuthError("Password does not match")
-    except ModelNotFound as e:
+    else:
         setattr(request, 'user', AbstractUser())
         raise AuthError("User not found")
 
