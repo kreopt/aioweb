@@ -35,7 +35,7 @@ def execute(argv, argv0, engine):
         if not migrations_dir: return
         print("[ %s ]" % app)
         existant_migrations = []
-        for m in os.listdir(dest_dir):
+        for m in sorted(os.listdir(dest_dir)):
             if not m.startswith('_') and m.endswith('.py'):
                 mp = os.path.join(dest_dir, m)
                 with open(mp) as f:
