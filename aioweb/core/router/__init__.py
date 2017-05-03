@@ -157,29 +157,29 @@ class Router(object):
         controller = self._import_controller(controller)
         if hasattr(controller, 'index'):
             [url, handler, gen_name] = self.resolve_action(controller, 'index')
-            name = "%s.index" % (name if name else gen_name)
-            self._add_route(hdrs.METH_GET, self._get_baseurl("%s/" % pref),
-                            handler, name=name)
+            rname = ("%s.index" % name) if name else gen_name
+            self._add_route(hdrs.METH_GET, "%s/" % pref,
+                            handler, name=rname)
         if hasattr(controller, 'edit_page'):
             [url, handler, gen_name] = self.resolve_action(controller, 'edit_page')
-            name = "%s.edit_page" % (name if name else gen_name)
-            self._add_route(hdrs.METH_GET, self._get_baseurl("%s/{id:[0-9]+}/" % pref), handler, name=name)
+            rname = ("%s.edit_page" % name) if name else gen_name
+            self._add_route(hdrs.METH_GET, "%s/{id:[0-9]+}/" % pref, handler, name=rname)
         if hasattr(controller, 'edit'):
             [url, handler, gen_name] = self.resolve_action(controller, 'edit')
-            name = "%s.edit" % (name if name else gen_name)
-            self._add_route(hdrs.METH_PATCH, self._get_baseurl('%s/{id:[0-9]+}/' % pref), handler, name=name)
+            rname = ("%s.edit" % name) if name else gen_name
+            self._add_route(hdrs.METH_PATCH, '%s/{id:[0-9]+}/' % pref, handler, name=rname)
         if hasattr(controller, 'add_page'):
             [url, handler, gen_name] = self.resolve_action(controller, 'add_page')
-            name = "%s.add_page" % (name if name else gen_name)
-            self._add_route(hdrs.METH_GET, self._get_baseurl('%s/add/' % pref), handler, name=name)
+            rname = ("%s.add_page" % name) if name else gen_name
+            self._add_route(hdrs.METH_GET, '%s/add/' % pref, handler, name=rname)
         if hasattr(controller, 'add'):
             [url, handler, gen_name] = self.resolve_action(controller, 'add')
-            name = "%s.add" % (name if name else gen_name)
-            self._add_route(hdrs.METH_POST, self._get_baseurl('%s/add/' % pref), handler, name=name)
+            rname = ("%s.add" % name) if name else gen_name
+            self._add_route(hdrs.METH_POST, '%s/add/' % pref, handler, name=rname)
         if hasattr(controller, 'delete'):
             [url, handler, gen_name] = self.resolve_action(controller, 'delete')
-            name = "%s.delete" % (name if name else gen_name)
-            self._add_route(hdrs.METH_DELETE, self._get_baseurl('%s/delete/' % pref), handler, name=name)
+            rname = ("%s.delete" % name) if name else gen_name
+            self._add_route(hdrs.METH_DELETE, '%s/delete/' % pref, handler, name=rname)
 
         self._currentName = name
         self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
