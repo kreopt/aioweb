@@ -10,7 +10,7 @@ import tests.factories.TABLE_factory
 
 
 
-class test_CLASS(wyrm.base_test.AoiWebTestCase):
+class test_CLASS(wyrm.base_test.AioWebTestCase):
     def setUp( self ):
         super().setUp()
 

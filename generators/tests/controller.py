@@ -1,12 +1,14 @@
 import unittest
 import wyrm.base_test
-import os, sys, shutil
+import os
+import sys
+import shutil
 from wyrm import lib
 sys.path.append( os.getcwd() )
 from app.controllers.CONTROLLER_NAME import CLASS
 
 
-class test_CLASS(wyrm.base_test.AoiWebTestCase):
+class test_CLASS(wyrm.base_test.AioWebTestCase):
     def setUp( self ):
         super().setUp()
         self.request = None
