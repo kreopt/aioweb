@@ -1,7 +1,7 @@
 from orator.migrations import Migration
 
 
-class CreateUserPermissionTable(Migration):
+class CreateUserGroupsTable(Migration):
 
     def up(self):
         """
