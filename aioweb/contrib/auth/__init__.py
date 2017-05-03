@@ -1,6 +1,5 @@
 import importlib
 
-from aiohttp import web
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 from orator.exceptions.orm import ModelNotFound
 from passlib.hash import sha256_crypt
@@ -53,13 +52,11 @@ class AuthError(Exception):
 
 
 class AuthValidator(object):
-
     def __init__(self):
         self.reason = "check failed"
 
     def validate(self, user):
         return False
-
 
 
 async def authenticate(request, username, password, remember=False, validators=tuple()):
@@ -82,17 +79,6 @@ async def authenticate(request, username, password, remember=False, validators=t
         raise AuthError("User not found")
 
     return user
-
-
-def check_logged(redirect_to=None):
-    async def fn(request, controller, actionName):
-        if not request.user.is_authenticated():
-            if redirect_to:
-                raise web.HTTPFound(redirect_to)
-            else:
-                raise web.HTTPForbidden(reason='Unauthorized')
-
-    return fn
 
 
 def check_request_key(request):
