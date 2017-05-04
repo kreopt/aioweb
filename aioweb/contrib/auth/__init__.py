@@ -1,5 +1,6 @@
 import importlib
 
+from aiohttp.log import web_logger
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 from orator.exceptions.orm import ModelNotFound
 from passlib.hash import sha256_crypt
@@ -9,8 +10,12 @@ from aioweb.contrib.auth.models.user import User, AbstractUser
 try:
     from aioweb.conf import settings
 
-    USER_MODEL = importlib.import_module(settings.AUTH_USER_MODEL)
-except ImportError:
+    chunks = settings.AUTH_USER_MODEL.split('.')
+
+    mod = importlib.import_module('.'.join(chunks[:-1]))
+    USER_MODEL = getattr(mod, chunks[-1])
+except (ImportError, AttributeError) as e:
+    web_logger.debug("failed to import user model %s " % settings.AUTH_USER_MODEL)
     USER_MODEL = User
 
 REQUEST_KEY = 'AIOWEB_AUTH'
