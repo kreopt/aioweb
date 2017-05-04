@@ -28,8 +28,8 @@ class Controller(object):
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
-    def url_for(self, action):
-        return self.router.resolve_action(self._private.controller, action)[0]
+    def url_for(self, action, prefix=None):
+        return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action)
 
     @property
     def session(self):

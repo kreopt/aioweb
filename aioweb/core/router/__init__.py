@@ -69,6 +69,13 @@ class Router(object):
             self.app.controllers[ctrl_class_name].search_path = self.view_prefix
         return self.app.controllers[ctrl_class_name]
 
+    def resolve_named(self, name, *args, **kwargs):
+        return self.app.router[name].url_for(*args, **kwargs)
+
+    def resolve_action_url(self, controller, action_name, *args, **kwargs):
+        return self.app.router["%s.%s" % (self._get_namespace(controller), action_name)].url_for(*args, **kwargs)
+        # return self._get_baseurl("/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name))
+
     def resolve_action(self, controller, action_name):
 
         if type(controller) == str:
@@ -168,6 +175,7 @@ class Router(object):
             [url, handler, gen_name] = self.resolve_action(controller, 'edit')
             rname = ("%s.edit" % name) if name else gen_name
             self._add_route(hdrs.METH_PATCH, '%s/{id:[0-9]+}/' % pref, handler, name=rname)
+            self._add_route(hdrs.METH_POST, '%s/{id:[0-9]+}/' % pref, handler, name="%s_" % rname)
         if hasattr(controller, 'add_page'):
             [url, handler, gen_name] = self.resolve_action(controller, 'add_page')
             rname = ("%s.add_page" % name) if name else gen_name
@@ -179,7 +187,8 @@ class Router(object):
         if hasattr(controller, 'delete'):
             [url, handler, gen_name] = self.resolve_action(controller, 'delete')
             rname = ("%s.delete" % name) if name else gen_name
-            self._add_route(hdrs.METH_DELETE, '%s/delete/' % pref, handler, name=rname)
+            self._add_route(hdrs.METH_DELETE, '%s/{id:[0-9]+}/delete/' % pref, handler, name=rname)
+            self._add_route(hdrs.METH_POST, '%s/{id:[0-9]+}/delete/' % pref, handler, name="%s_" % rname)
 
         self._currentName = name
         self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
