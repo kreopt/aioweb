@@ -15,7 +15,7 @@ try:
     mod = importlib.import_module('.'.join(chunks[:-1]))
     USER_MODEL = getattr(mod, chunks[-1])
 except (ImportError, AttributeError) as e:
-    web_logger.debug("failed to import user model %s " % settings.AUTH_USER_MODEL)
+    web_logger.debug("failed to import user model")
     USER_MODEL = User
 
 REQUEST_KEY = 'AIOWEB_AUTH'
