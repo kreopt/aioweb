@@ -5,7 +5,8 @@ import importlib
 import traceback
 
 os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
-sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
+if os.environ.get("AIOWEB_SETTINGS_DIR"):
+    sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
 sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__))
 import lib
