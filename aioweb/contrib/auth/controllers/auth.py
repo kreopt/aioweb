@@ -4,6 +4,7 @@ import aioweb.core
 from aioweb.contrib.auth import authenticate, AuthError, forget_user
 from aioweb.core.controller.decorators import default_layout
 from aioweb.conf import settings
+from aioweb.util import import_controller, awaitable
 
 
 @default_layout('base.html')
@@ -17,6 +18,11 @@ class AuthController(aioweb.core.Controller):
 
     async def index(self):
         self.redirect_authenticated()
+        if hasattr(settings, 'AUTH_INDEX_HANDLER'):
+            ctrl, action = getattr(settings, 'AUTH_INDEX_HANDLER').split('#')
+            ctrl_class, ctrl_class_name = import_controller(ctrl)
+            hdlr = getattr(ctrl_class, action)
+            return await awaitable(hdlr(self))
 
     async def login(self):
         data = await self.request.post()
