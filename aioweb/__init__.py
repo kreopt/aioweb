@@ -12,6 +12,8 @@ from .core import router
 from .conf import settings
 
 class Application(AioApp):
+    last_controller = None
+
     def __init__(self, *, logger=web_logger, loop=None, router=None, config=ConfigReader('config/config.yml'), debug=...):
         super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
         self.conf = config

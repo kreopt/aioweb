@@ -89,6 +89,10 @@ class Router(object):
 
         async def action_handler(request):
             ctrl_instance = ctrl_class(request, self)
+
+            if self.app['env'] == 'test':
+                self.app.__class__.last_controller = ctrl_instance
+
             try:
                 action = getattr(ctrl_instance, action_name)
             except AttributeError as e:
