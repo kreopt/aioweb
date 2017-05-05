@@ -13,6 +13,8 @@ search_paths = [
 ]
 
 
+# def always_say_yes
+# def always_say_no
 # def ask
 # def names
 # def dirs
@@ -50,10 +52,21 @@ def init_orator(settings):
     Model.set_connection_resolver(DatabaseManager(dbconfig))
 
 
+answer = None
+def always_say_yes():
+    global answer
+    answer = 'y'
+    
+
+def always_say_no():
+    global answer
+    answer = 'n'
+
 def ask(question, answers=["y", "n"]):
+    global answer
     while True:
         print(question + " [" + ",".join(answers) + "]")
-        rc = sys.stdin.readline().strip().lower()
+        rc = answer if answer and answer in answers else sys.stdin.readline().strip().lower()
         if rc in answers:
             return rc
         else:

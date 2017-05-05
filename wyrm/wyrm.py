@@ -4,13 +4,11 @@ import os
 import importlib
 import traceback
 
-import inflect
-
 os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
 sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
 sys.path.append(os.getcwd())
 sys.path.append(os.path.dirname(__file__))
-plague = inflect.engine()
+import lib
 
 commands = {}
 aliases = {}
@@ -97,19 +95,42 @@ def print_cmd(co, n=1, addr=[]):
 
 
 def usage(argv0, co=None, addr=[]):
-    print("Usage: " + argv0 + " <command> [-h|--help] [args]")
+    print("")
+    print("Usage: " + argv0 + " [OPTIONS] <command> [-h|--help] [args]")
+    print("")
+    print('OPTIONS:')
+    print(' -e environment')
+    print(' -y[es]')
+    print(' -n[o]')
     print("")
     if addr:
         print('"wyrm {}" supports these subcommands:'.format(' '.join(addr)))
     else:
         print("Wyrm supports these commands:")
     print_cmd(commands if not co else co, addr=addr)
+    print("")
     sys.exit(1)
 
 
 def execute(argv=None):
     if not argv:
         argv = sys.argv
+    while argv[1:]:
+        if argv[1] not in ['-y', '-yes', '-n', '-no', '-e']:
+            break
+        if argv[1] == '-e':
+            if len(argv) == 2:
+                usage(argv[0])
+            os.environ["AIOWEB_ENV"] = argv[2]
+            del argv[1]
+            del argv[1]
+        elif argv[1] in ['-y', '-yes']:
+            del argv[1]
+            lib.always_say_yes()
+        elif argv[1] in ['-n', '-no']:
+            del argv[1]
+            lib.always_say_no()
+
     if len(argv) == 1:
         usage(argv[0])
     n = 1
