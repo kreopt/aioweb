@@ -1,5 +1,6 @@
 import importlib
 import inspect
+import os
 
 import inflection
 from aiohttp import hdrs, web
@@ -90,7 +91,7 @@ class Router(object):
         async def action_handler(request):
             ctrl_instance = ctrl_class(request, self)
 
-            if self.app['env'] == 'test':
+            if os.environ.get('AIOWEB_ENV', '') == 'test':
                 self.app.__class__.last_controller = ctrl_instance
 
             try:
