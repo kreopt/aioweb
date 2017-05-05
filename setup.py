@@ -10,12 +10,6 @@ here = os.path.abspath(os.path.dirname(__file__))
 with open(os.path.join(here, 'requirements.txt')) as f:
     requirements = f.readlines()
 
-data_files = []
-for root, dirs, files in os.walk("generators"):
-    if len(files) != 0:
-        data_files.append((root, list(map(lambda f: os.path.join(root, f), files))))
-
-print(data_files)
 
 # from setuptools import setup
 from setuptools.command.install import install
@@ -58,7 +52,8 @@ setup(name='aioweb',
           'dev': ['aiohttp-devtools', 'aiohttp_debugtoolbar'],
           'test': ['pytest-asyncio'],
       },
-      data_files=data_files,
+      package_data= {'aioweb': ['views/*']},
+      #data_files=data_files,
       cmdclass={'install': CustomInstallCommand}
 
       )
