@@ -9,6 +9,7 @@ aiohttp_debugtoolbar
 aiofiles
 passlib
 pytest-asyncio
+pytest-aiohttp
 orator
 pyyaml
 inflect

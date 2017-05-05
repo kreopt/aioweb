@@ -1,4 +1,5 @@
 import unittest
+from aiohttp.test_utils import unittest_run_loop
 import wyrm.base_test
 import os
 import sys
@@ -9,10 +10,9 @@ from app.controllers.CONTROLLER_NAME import CLASS
 
 
 class test_CLASS(wyrm.base_test.AioWebTestCase):
+    start_server=True
     def setUp( self ):
         super().setUp()
-        self.request = None
-        self.router  = None
 
 
 if __name__ == '__main__':
