@@ -6,7 +6,7 @@ brief = "create a new project"
 
 
 def usage(argv0):
-    print("Usage: {} new project_name [dirname]".format(argv0))
+    print("Usage: {} new [module_name] dirname".format(argv0))
 
 
 def execute(argv, argv0, engine):
@@ -17,20 +17,25 @@ def execute(argv, argv0, engine):
         sys.exit(1)
     name = argv[0]
     dirname = argv[-1]
+    appdir  = dirname
+    if len(argv) >= 2:
+        appdir = os.path.join( dirname, name )
+
     gen_path = lib.get_template("new")
     if not gen_path:
         print("ERROR: can't locate generator templates!")
         sys.exit(1)
-    if os.path.exists(dirname):
-        print("cleaning {}".format(os.path.abspath(dirname)))
-        if os.listdir(dirname):
-            rc = lib.ask("{} is not empty.\nDo you wanna empty this folder?".format(os.path.abspath(dirname)))
+
+    if os.path.exists(appdir):
+        print("cleaning {}".format(os.path.abspath(appdir)))
+        if os.listdir(appdir):
+            rc = lib.ask("{} is not empty.\nDo you wanna empty this folder?".format(os.path.abspath(appdir)))
             if rc != 'y':
                 print("Generation was aborted.")
                 sys.exit(1)
 
-        for entry in os.listdir(dirname):
-            path = os.path.join(dirname, entry)
+        for entry in os.listdir(appdir):
+            path = os.path.join(appdir, entry)
             if os.path.isdir(path):
                 shutil.rmtree(path)
             else:
@@ -38,11 +43,20 @@ def execute(argv, argv0, engine):
         print("coping files...")
         for entry in os.listdir(gen_path):
             src = os.path.join(gen_path, entry)
-            dest = os.path.join(dirname, entry)
+            dest = os.path.join(appdir, entry)
             if os.path.isdir(src):
                 shutil.copytree(src, dest)
             else:
                 shutil.copy2(src, dest)
     else:
+        if appdir != dirname:
+            os.makedirs(dirname, exist_ok=True)
         print("coping files...")
-        shutil.copytree(gen_path, dirname)
+        shutil.copytree(gen_path, appdir)
+
+    if appdir != dirname:
+        print("patching setup.py")
+        print(lib.get_template("setup.py"))
+        shutil.copy2(lib.get_template("setup.py"), os.path.join(dirname, "setup.py") )
+        with open(os.path.join(dirname, "setup.py"), "r") as f: setup_py = f.read().replace("APP_NAME", name)
+        with open(os.path.join(dirname, "setup.py"), "w") as f: f.write( setup_py )

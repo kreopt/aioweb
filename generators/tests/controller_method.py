@@ -5,3 +5,4 @@ async def test_METHOD( self ):
     rsp= await self.client.request("GET", "/")
     print(rsp.status)
     self.assertTrue(rsp.status == 200)
+    print(self.app.last_controller)

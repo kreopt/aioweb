@@ -108,9 +108,6 @@ def get_import(category, component, app=None):
 
 
 def get_template(subpath):
-    path = os.path.abspath(subpath)
-    if os.path.exists(path):
-        return path
     for search_path in search_paths:
         path = os.path.join(search_path, vanila_dir, subpath)
         if os.path.exists(path):
