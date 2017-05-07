@@ -5,6 +5,7 @@ from aiohttp_jinja2 import APP_KEY
 from aiohttp_session import get_session
 
 from aioweb.core.controller.decorators import ProcessDescriptor
+from aioweb.core.controller.strong_parameters import StrongParameters
 from aioweb.modules import template
 from aioweb.modules.session.flash import Flash
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
@@ -30,6 +31,9 @@ class Controller(object):
 
     def url_for(self, action, prefix=None):
         return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action)
+
+    async def params(self):
+        return await StrongParameters().parse(self.request)
 
     @property
     def session(self):

@@ -28,6 +28,10 @@ class AioWebTestCase(unittest.TestCase):
         if self.start_server:
             self.init_server()
 
+    def __del__(self):
+        self.loop.close()
+        
+
     def refresh_db(self):
         resolver = Model.get_connection_resolver()
         repository = DatabaseMigrationRepository(resolver, 'migrations')

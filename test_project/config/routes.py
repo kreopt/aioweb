@@ -18,3 +18,4 @@ def setup(router):
         os.path.join(package_path('aioweb'), 'assets'),
         os.path.join(settings.BASE_DIR, 'app/assets'),
     ])
+    router.get('strong_parameters#test')
