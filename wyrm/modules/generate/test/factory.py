@@ -34,7 +34,7 @@ def execute(argv, argv0, engine):
             print("factory generation cancelled")
             return
 
-    template = lib.get_template("tests/factory.py")
+    template = lib.get_template("tests/factory.py", settings)
     with open(template, "r") as f:
         print("generating " + dest_path)
         content = f.read().replace("MODEL", model_name).replace("CLASS", model_class).replace("TABLE", table)

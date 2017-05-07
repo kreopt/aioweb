@@ -8,13 +8,12 @@ os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
 if os.environ.get("AIOWEB_SETTINGS_DIR"):
     sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
 sys.path.append(os.getcwd())
-sys.path.append(os.path.dirname(__file__))
-import lib
+import wyrm.lib as lib
 
 commands = {}
 aliases = {}
 modules = []
-modules_dir = os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")
+modules_dirs = [os.path.join(os.path.abspath(os.path.dirname(__file__)), "modules")]
 briefs = {}
 
 modules = []
@@ -25,32 +24,37 @@ except ImportError as e:
     settings = None
 
 if settings:
+    modules_dirs.append( os.path.join(settings.BASE_DIR, "wyrm/modules") )
+    sys.path.append(os.path.join(settings.BASE_DIR, "wyrm"))
+
     # sys.path.append( modules_dir )
-    for root, subdirs, files in os.walk(modules_dir):
-        mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
-        if mods:
-            r = root.replace(modules_dir, '').replace('/', '.')
-            if r.startswith('.'): r = r[1:]
-            if r:
-                modules += [r + '.' + module for module in mods]
-            else:
-                modules += mods
+    for modules_dir in modules_dirs:
+        for root, subdirs, files in os.walk(modules_dir):
+            mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
+            if mods:
+                r = root.replace(modules_dir, '').replace('/', '.')
+                if r.startswith('.'): r = r[1:]
+                if r:
+                    modules += [r + '.' + module for module in mods]
+                else:
+                    modules += mods
     commands["g"] = "generate"
     commands["d"] = "destroy"
     commands["t"] = "test"
     commands["delete"] = "destroy"
+    modules=list(set(modules))
 else:
     modules = ['new']
-    sys.path.append(modules_dir)
-    for root, subdirs, files in os.walk(os.path.join(modules_dir, "help")):
-        mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
-        if mods:
-            r = root.replace(modules_dir, '').replace('/', '.')
-            if r.startswith('.'): r = r[1:]
-            if r:
-                modules += [r + '.' + module for module in mods]
-            else:
-                modules += mods
+    for modules_dir in modules_dirs:
+        for root, subdirs, files in os.walk(os.path.join(modules_dir, "help")):
+            mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
+            if mods:
+                r = root.replace(modules_dir, '').replace('/', '.')
+                if r.startswith('.'): r = r[1:]
+                if r:
+                    modules += [r + '.' + module for module in mods]
+                else:
+                    modules += mods
 
 for module in modules:
     try:
@@ -79,6 +83,7 @@ for module in modules:
         for alias in aliases:
             commands[alias] = module
 
+sys.path.append(os.path.dirname(__file__))
 
 def print_cmd(co, n=1, addr=[]):
     for k in sorted(co.keys(), key=lambda k: ("zzzz" + k) if type(co[k]) == dict else k):

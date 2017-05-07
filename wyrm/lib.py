@@ -86,6 +86,7 @@ def names(word, format=[]):
 def dirs(settings, app=None, format=[], check=False):
     base_dir = os.path.dirname(importlib.util.find_spec(app).origin) if app  else settings.BASE_DIR
     ret = {}
+    ret["generators"] = os.path.join(base_dir, "wyrm/generators")
     ret["config"] = os.path.join(base_dir, "config")
     ret["tests"] = os.path.join(base_dir, "tests")
     ret["factories"] = os.path.join(base_dir, "tests/factories")
@@ -107,7 +108,12 @@ def get_import(category, component, app=None):
     return (app if app else "app") + ".{}.{}".format(category, component)
 
 
-def get_template(subpath):
+def get_template(subpath, settings=None):
+    if settings:
+        path = os.path.join( dirs(settings, format=["generators"]), subpath)
+        if os.path.exists(path):
+            return path
+
     for search_path in search_paths:
         path = os.path.join(search_path, vanila_dir, subpath)
         if os.path.exists(path):

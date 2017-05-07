@@ -32,7 +32,7 @@ def execute(argv, argv0, engine):
     view_file = os.path.join(views_dir, inflection.underscore(argv[0]) + "/" + method_name + ".html")
 
     os.makedirs(os.path.dirname(dest_file), exist_ok=True)
-    template = lib.get_template("controllers/simple_controller_method.py")
+    template = lib.get_template("controllers/simple_controller_method.py", settings)
 
     if not os.path.exists(dest_file):
         print("Sorry but {} does not exist!".format(dest_file))
@@ -49,7 +49,7 @@ def execute(argv, argv0, engine):
     os.makedirs(os.path.dirname(view_file), exist_ok=True)
     if not os.path.exists(view_file):
         print("creating " + view_file)
-        template = lib.get_template("controllers/view.html")
+        template = lib.get_template("controllers/view.html", settings)
 
         with open(template, "r") as f: view_code = f.read().replace("ROUTE_NAME", route_name)
 

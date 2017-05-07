@@ -28,7 +28,7 @@ def execute(argv, argv0, engine):
         if lib.ask("{} already exists!\nDo You wanna rewrite it?".format(dest_path)) == 'n':
             return
 
-    template = lib.get_template("tests/model.py")
+    template = lib.get_template("tests/model.py", settings)
     with open(template, "r") as f:
         print("generating " + dest_path)
         content = f.read().replace("MODEL", model_name).replace("CLASS", model_class).replace("TABLE", table)

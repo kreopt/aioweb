@@ -26,7 +26,7 @@ def execute(argv, argv0, engine):
     methods = argv[1:]
     dest_file = os.path.join(lib.dirs(settings, format=["tests_controllers"]), controller_file_name)
     os.makedirs(os.path.dirname(dest_file), exist_ok=True)
-    template = lib.get_template("tests/controller.py")
+    template = lib.get_template("tests/controller.py", settings)
 
     if os.path.exists(dest_file):
         if lib.ask("{} already exists!\nDo you wanna replace it?".format(dest_file)) == 'n':

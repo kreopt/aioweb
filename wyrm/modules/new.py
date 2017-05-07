@@ -54,6 +54,9 @@ def execute(argv, argv0, engine):
         print("coping files...")
         shutil.copytree(gen_path, appdir)
 
+    os.makedirs( os.path.join(appdir, "wyrm/generators"), exist_ok=True)
+    os.makedirs( os.path.join(appdir, "wyrm/modules"), exist_ok=True)
+
     if appdir != dirname:
         print("patching setup.py")
         print(lib.get_template("setup.py"))

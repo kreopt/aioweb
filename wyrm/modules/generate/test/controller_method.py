@@ -29,7 +29,7 @@ def execute(argv, argv0, engine):
     dest_file = os.path.join(controllers_dir, controller_file_name)
 
     os.makedirs(os.path.dirname(dest_file), exist_ok=True)
-    template = lib.get_template("tests/controller_method.py")
+    template = lib.get_template("tests/controller_method.py", settings)
 
     if not os.path.exists(dest_file):
         print("Sorry but {} does not exist!".format(dest_file))
