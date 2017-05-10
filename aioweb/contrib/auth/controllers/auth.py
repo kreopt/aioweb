@@ -1,7 +1,7 @@
 from aiohttp import web
 
 import aioweb.core
-from aioweb.contrib.auth import authenticate, AuthError, forget_user
+from aioweb.contrib.auth import authenticate, AuthError, forget_user, redirect_authenticated
 from aioweb.core.controller.decorators import default_layout
 from aioweb.conf import settings
 from aioweb.util import import_controller, awaitable
@@ -9,15 +9,9 @@ from aioweb.util import import_controller, awaitable
 
 @default_layout('base.html')
 class AuthController(aioweb.core.Controller):
-    def redirect_authenticated(self):
-        if self.request.user.is_authenticated():
-            redirect_url = self.request.query.get('redirect_to')
-            if not redirect_url:
-                redirect_url = getattr(settings, 'AUTH_PRIVATE_URL', '/')
-            raise web.HTTPFound(redirect_url)
 
     async def index(self):
-        self.redirect_authenticated()
+        await redirect_authenticated(self.request)
         if hasattr(settings, 'AUTH_INDEX_HANDLER'):
             ctrl, action = getattr(settings, 'AUTH_INDEX_HANDLER').split('#')
             ctrl_class, ctrl_class_name = import_controller(ctrl)
@@ -35,7 +29,7 @@ class AuthController(aioweb.core.Controller):
                 self.flash['AUTH_ERROR'] = str(e)
                 raise web.HTTPFound(self.url_for('index'))
 
-        self.redirect_authenticated()
+        await redirect_authenticated(self.request)
         raise web.HTTPForbidden(reason='Unauthenticated')  # This should not happen
 
     async def logout(self):

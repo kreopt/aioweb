@@ -1,5 +1,6 @@
 import importlib
 
+from aiohttp import web
 from aiohttp.log import web_logger
 from aiohttp_security.abc import AbstractAuthorizationPolicy
 from orator.exceptions.orm import ModelNotFound
@@ -64,26 +65,29 @@ class AuthValidator(object):
         return False
 
 
+async def authenticate_user(request, user, remember=False, validators=tuple()):
+    for validator in validators:
+        if not validator.validate(user):
+            raise AuthError(validator.reason)
+    setattr(user, 'is_authenticated', lambda: True)
+    request['just_authenticated'] = True
+    setattr(request, 'user', user)
+    if remember:
+        await remember_user(request)
+
+    return user
+
 async def authenticate(request, username, password, remember=False, validators=tuple()):
     user = get_user_by_name(username)
     if user:
         if sha256_crypt.verify(password, user.password):
-            for validator in validators:
-                if not validator.validate(user):
-                    raise AuthError(validator.reason)
-            setattr(user, 'is_authenticated', lambda: True)
-            request['just_authenticated'] = True
-            setattr(request, 'user', user)
-            if remember:
-                await remember_user(request)
+            return await authenticate_user(request, user, remember=remember, validators=validators)
         else:
             setattr(request, 'user', AbstractUser())
             raise AuthError("Password does not match")
     else:
         setattr(request, 'user', AbstractUser())
         raise AuthError("User not found")
-
-    return user
 
 
 def check_request_key(request):
@@ -99,3 +103,10 @@ async def remember_user(request):
 async def forget_user(request):
     check_request_key(request)
     request[REQUEST_KEY]['forget'] = True
+
+async def redirect_authenticated(request):
+    if request.user.is_authenticated():
+        redirect_url = request.query.get('redirect_to')
+        if not redirect_url:
+            redirect_url = getattr(settings, 'AUTH_PRIVATE_URL', '/')
+        raise web.HTTPFound(redirect_url)
