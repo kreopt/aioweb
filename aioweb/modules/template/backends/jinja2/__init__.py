@@ -4,7 +4,7 @@ import aiohttp_jinja2
 import jinja2
 from aioweb.conf import settings
 
-from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans
+from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans, DjangoNow
 
 from aiohttp_jinja2 import render_string, render_template as render, APP_KEY
 
@@ -29,5 +29,6 @@ async def setup(app):
         extensions=[
             DjangoStatic,
             DjangoUrl,
+            DjangoNow,
             DjangoTrans
         ])

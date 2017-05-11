@@ -1,9 +1,12 @@
+from datetime import datetime
 from urllib.parse import urljoin
 
 from jinja2 import lexer, nodes
 from jinja2.ext import Extension
 
 from aioweb.conf import settings
+
+# see jinja2-django-tags
 
 class DjangoLoad(Extension):
     """
@@ -72,6 +75,33 @@ class DjangoStatic(Extension):
         else:
             return nodes.Output([call], lineno=lineno)
 
+
+class DjangoNow(Extension):
+    """
+    Implements django's `{% now %}` tag.
+    """
+    tags = set(['now'])
+
+    def _now(self, format_string):
+        tzinfo = None #get_current_timezone() if settings.USE_TZ else None
+        cur_datetime = datetime.now(tz=tzinfo)
+        return cur_datetime.strftime(format_string)
+
+    def parse(self, parser):
+        lineno = next(parser.stream).lineno
+        token = parser.stream.expect(lexer.TOKEN_STRING)
+        format_string = nodes.Const(token.value)
+        call = self.call_method('_now', [format_string], lineno=lineno)
+
+        token = parser.stream.current
+        if token.test('name:as'):
+            next(parser.stream)
+            as_var = parser.stream.expect(lexer.TOKEN_NAME)
+            as_var = nodes.Name(as_var.value, 'store', lineno=as_var.lineno)
+            return nodes.Assign(as_var, call, lineno=lineno)
+        else:
+            return nodes.Output([call], lineno=lineno)
+
 class DjangoUrl(Extension):
     """
     Implements django's `{% ulr %}` tag::
@@ -84,18 +114,75 @@ class DjangoUrl(Extension):
     def _url(self, path):
         return self.environment.globals['url'](path)
 
+    def _url_reverse(self, name, *args, **kwargs):
+        if len(kwargs):
+            return self.environment.globals['url'](name, parts=kwargs)
+        else:
+            return self.environment.globals['url'](name)
+
+    @staticmethod
+    def parse_expression(parser):
+        # Due to how the jinja2 parser works, it treats "foo" "bar" as a single
+        # string literal as it is the case in python.
+        # But the url tag in django supports multiple string arguments, e.g.
+        # "{% url 'my_view' 'arg1' 'arg2' %}".
+        # That's why we have to check if it's a string literal first.
+        token = parser.stream.current
+        if token.test(lexer.TOKEN_STRING):
+            expr = nodes.Const(token.value, lineno=token.lineno)
+            next(parser.stream)
+        else:
+            expr = parser.parse_expression(False)
+
+
+        return expr
+
     def parse(self, parser):
         lineno = next(parser.stream).lineno
-        token = parser.stream.expect(lexer.TOKEN_STRING)
-        path = nodes.Const(token.value)
+        view_name = parser.stream.expect(lexer.TOKEN_STRING)
+        view_name = nodes.Const(view_name.value, lineno=view_name.lineno)
 
-        call = self.call_method('_url', [path], lineno=lineno)
+        args = None
+        kwargs = None
+        as_var = None
 
-        token = parser.stream.current
-        if token.test('name:as'):
-            next(parser.stream)
-            as_var = parser.stream.expect(lexer.TOKEN_NAME)
-            as_var = nodes.Name(as_var.value, 'store', lineno=as_var.lineno)
-            return nodes.Assign(as_var, call, lineno=lineno)
-        else:
+        while parser.stream.current.type != lexer.TOKEN_BLOCK_END:
+            token = parser.stream.current
+            if token.test('name:as'):
+                next(parser.stream)
+                token = parser.stream.expect(lexer.TOKEN_NAME)
+                as_var = nodes.Name(token.value, 'store', lineno=token.lineno)
+                break
+            if args is not None:
+                args.append(self.parse_expression(parser))
+            elif kwargs is not None:
+                if token.type != lexer.TOKEN_NAME:
+                    parser.fail(
+                        "got '{}', expected name for keyword argument"
+                        "".format(lexer.describe_token(token)),
+                        lineno=token.lineno
+                    )
+                arg = token.value
+                next(parser.stream)
+                parser.stream.expect(lexer.TOKEN_ASSIGN)
+                token = parser.stream.current
+                kwargs[arg] = self.parse_expression(parser)
+            else:
+                if parser.stream.look().type == lexer.TOKEN_ASSIGN:
+                    kwargs = {}
+                else:
+                    args = []
+                continue
+
+        if args is None:
+            args = []
+        args.insert(0, view_name)
+
+        if kwargs is not None:
+            kwargs = [nodes.Keyword(key, val) for key, val in kwargs.items()]
+
+        call = self.call_method('_url_reverse', args, kwargs, lineno=lineno)
+        if as_var is None:
             return nodes.Output([call], lineno=lineno)
+        else:
+            return nodes.Assign(as_var, call, lineno=lineno)
