@@ -13,7 +13,7 @@ class Flash(object):
         self._tempStorage[key] = value
 
     def keep(self, key):
-        self._tempStorage[key] = self.storage.get(key)
+        self._tempStorage[key] = self.storage[FLASH_SESSION_KEY].get(key)
 
     def sync(self):
         self.storage[FLASH_SESSION_KEY] = self._tempStorage
