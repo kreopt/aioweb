@@ -32,6 +32,12 @@ class Controller(object):
     def url_for(self, action, prefix=None):
         return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action)
 
+    def absolute_url_for(self, action, prefix=None):
+        return "%s://%s%s%s" % (self.request.url.scheme,
+                                 self.request.url.host,
+                                 ":%s" % self.request.url.port if self.request.url.port != 80 else "",
+                                 self.url_for(action, prefix))
+
     async def params(self):
         return await StrongParameters().parse(self.request)
 
@@ -92,7 +98,6 @@ class Controller(object):
         except Exception as e:
             self._private.flash.sync()
             raise e
-
 
         if isinstance(res, web.Response):
             self._private.flash.sync()
