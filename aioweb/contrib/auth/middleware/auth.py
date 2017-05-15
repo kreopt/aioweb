@@ -7,6 +7,7 @@ from aioweb.contrib.auth.models.user import AbstractUser
 from aioweb.modules.db import init_db
 from aioweb.util import awaitable
 
+
 async def make_request_user(request):
     identity = await authorized_userid(request)
     if identity:
@@ -19,12 +20,14 @@ async def make_request_user(request):
     else:
         setattr(request, 'user', AbstractUser())
 
+
 async def process_auth(request, response):
     if request.get(REQUEST_KEY):
         if request[REQUEST_KEY].get('remember') and request.user.is_authenticated():
             await remember(request, response, request.user.username)
         if request[REQUEST_KEY].get('forget'):
             await forget(request, response)
+
 
 async def middleware(app, handler):
     async def middleware_handler(request):
@@ -36,12 +39,13 @@ async def middleware(app, handler):
             raise e
         except Exception as e:
             await process_auth(request, e)
-            raise e#web.HTTPInternalServerError(reason='Unknown error')
+            raise e  # web.HTTPInternalServerError(reason='Unknown error')
         else:
             await process_auth(request, response)
         return response
 
     return middleware_handler
+
 
 async def setup(app):
     for requirement in ['db', 'session']:

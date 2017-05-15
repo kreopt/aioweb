@@ -45,12 +45,14 @@ class StringField(FormField):
     def validate(cls, value):
         return isinstance(value, type('')) or value is None
 
+
 class PasswordField(FormField):
     type = 'password'
 
     @classmethod
     def validate(cls, value):
         return isinstance(value, type('')) or value is None
+
 
 class ChoiceField(FormField):
     type = 'choice'

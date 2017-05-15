@@ -1,13 +1,15 @@
 {% extends 'admin/base.html' %}
 {% block content %}
-    <menu class="toolbar">
-        <div><a class="button" href="/admin/">Home</a></div>
-        <a class="button" href="/admin/{{ model }}/add/">Add {{ model }}</a>
-    </menu>
-    <div>Total: {{ items|length }} records</div>
-    <table class="table table--striped">
+<menu class="toolbar">
+    <div><a class="button" href="/admin/">Home</a></div>
+    <a class="button" href="/admin/{{ model }}/add/">Add {{ model }}</a>
+</menu>
+<div>Total: {{ items|length }} records</div>
+<table class="table table--striped">
     {% for item in items %}
-        <tr><td><a href="/admin/{{ model }}/{{ item._attributes[item.Admin.__id_field__] }}/">{{ item|e }}</a></td></tr>
+    <tr>
+        <td><a href="/admin/{{ model }}/{{ item._attributes[item.Admin.__id_field__] }}/">{{ item|e }}</a></td>
+    </tr>
     {% endfor %}
-    </table>
+</table>
 {% endblock %}

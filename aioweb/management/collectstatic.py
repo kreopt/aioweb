@@ -5,6 +5,7 @@ import shutil
 from aioweb import settings
 from optparse import OptionParser
 
+
 def recursive_overwrite(src, dest, ignore=None):
     if os.path.isdir(src):
         if not os.path.isdir(dest):
@@ -21,6 +22,7 @@ def recursive_overwrite(src, dest, ignore=None):
                                     ignore)
     else:
         shutil.copyfile(src, dest)
+
 
 def run(*args, **kwargs):
     parser = OptionParser()

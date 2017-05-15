@@ -68,7 +68,6 @@ class ModelAdmin(object):
                     setattr(iitem, f[1], post[field])
             iitem.save()
 
-
         for field in post:
             f = field.split('.')
             if f[0] == MODELS[request.match_info['model']].__name__ and hasattr(item, f[1]):
@@ -125,13 +124,15 @@ class ModelAdmin(object):
             for field in self.get_model_fields(inline[0]):
                 try:
                     field_instances.append(
-                        [field[0], FieldInstance(request, field[1],  "%s.%s" % (inline[0].__name__, field[0]), getattr(iitem, field[0]))])
+                        [field[0], FieldInstance(request, field[1], "%s.%s" % (inline[0].__name__, field[0]),
+                                                 getattr(iitem, field[0]))])
                 except AttributeError:
                     pass
 
         for field in fields:
             try:
-                field_instances.append([field[0], FieldInstance(request, field[1], "%s.%s" % (MODELS[request.match_info['model']].__name__, field[0]), getattr(item, field[0]))])
+                field_instances.append([field[0], FieldInstance(request, field[1], "%s.%s" % (
+                MODELS[request.match_info['model']].__name__, field[0]), getattr(item, field[0]))])
             except AttributeError:
                 pass
         return {
@@ -160,7 +161,7 @@ class ModelAdmin(object):
         for field in fields:
             try:
                 field_instances.append([field[0], FieldInstance(request, field[1], "%s.%s" % (
-                MODELS[request.match_info['model']].__name__, field[0]))])
+                    MODELS[request.match_info['model']].__name__, field[0]))])
             except AttributeError:
                 pass
 
@@ -168,6 +169,7 @@ class ModelAdmin(object):
             'model': request.match_info['model'],
             'fields': field_instances
         }
+
 
 @template('admin/index.html')
 @login_required()

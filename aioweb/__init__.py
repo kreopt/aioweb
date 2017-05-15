@@ -11,10 +11,12 @@ from aioweb.util.conf_reader import ConfigReader
 from .core import router
 from .conf import settings
 
+
 class Application(AioApp):
     last_controller = None
 
-    def __init__(self, *, logger=web_logger, loop=None, router=None, config=ConfigReader('config/config.yml'), debug=...):
+    def __init__(self, *, logger=web_logger, loop=None, router=None, config=ConfigReader('config/config.yml'),
+                 debug=...):
         super().__init__(logger=logger, loop=loop, router=router, middlewares=[], debug=debug)
         self.conf = config
         self.modules = set()
@@ -37,12 +39,12 @@ class Application(AioApp):
     def has_module(self, module):
         return module in self.modules
 
-
     async def _handle(self, request):
         http_method = request.headers.get('X-Http-Method-Override', '').upper()
         overriden = request.clone(method=http_method if http_method else request.method,
-                                  rel_url="?".join((request.rel_url.path.rstrip('/') if request.rel_url.path != '/' else request.rel_url.path,
-                                                   request.query_string))
+                                  rel_url="?".join((request.rel_url.path.rstrip(
+                                      '/') if request.rel_url.path != '/' else request.rel_url.path,
+                                                    request.query_string))
                                   )
 
         return await super()._handle(overriden)
@@ -83,10 +85,11 @@ def run_app(app, *,
     if unix_socket:
         try:
             os.unlink(unix_socket)
-        except:pass
+        except:
+            pass
         srv = loop.run_until_complete(loop.create_unix_server(handler, path=unix_socket,
-                                                                ssl=ssl_context,
-                                                                backlog=backlog))
+                                                              ssl=ssl_context,
+                                                              backlog=backlog))
         os.chmod(unix_socket, 0o664)
         print("======== Running on unix://{} ========\n"
               "(Press CTRL+C to quit)".format(unix_socket))
@@ -112,4 +115,3 @@ def run_app(app, *,
         loop.run_until_complete(handler.shutdown(shutdown_timeout))
         loop.run_until_complete(app.cleanup())
     loop.close()
-

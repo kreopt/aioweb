@@ -6,6 +6,7 @@ from jinja2.ext import Extension
 
 from aioweb.conf import settings
 
+
 # see jinja2-django-tags
 
 class DjangoLoad(Extension):
@@ -28,6 +29,7 @@ class DjangoLoad(Extension):
     def _load(self):
         return ''
 
+
 class DjangoTrans(Extension):
     """
     Implements django's `{% trans %}` tag.
@@ -47,6 +49,7 @@ class DjangoTrans(Extension):
 
     def _trans(self, str):
         return str
+
 
 class DjangoStatic(Extension):
     """
@@ -83,7 +86,7 @@ class DjangoNow(Extension):
     tags = set(['now'])
 
     def _now(self, format_string):
-        tzinfo = None #get_current_timezone() if settings.USE_TZ else None
+        tzinfo = None  # get_current_timezone() if settings.USE_TZ else None
         cur_datetime = datetime.now(tz=tzinfo)
         return cur_datetime.strftime(format_string)
 
@@ -101,6 +104,7 @@ class DjangoNow(Extension):
             return nodes.Assign(as_var, call, lineno=lineno)
         else:
             return nodes.Output([call], lineno=lineno)
+
 
 class DjangoUrl(Extension):
     """
@@ -133,7 +137,6 @@ class DjangoUrl(Extension):
             next(parser.stream)
         else:
             expr = parser.parse_expression(False)
-
 
         return expr
 

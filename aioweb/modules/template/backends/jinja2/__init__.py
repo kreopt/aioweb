@@ -8,6 +8,7 @@ from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans, Djang
 
 from aiohttp_jinja2 import render_string, render_template as render, APP_KEY
 
+
 async def setup(app):
     procs = [aiohttp_jinja2.request_processor]
     # setup Jinja2 template renderer

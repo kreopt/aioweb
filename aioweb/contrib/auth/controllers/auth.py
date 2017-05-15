@@ -1,7 +1,9 @@
+import re
 from aiohttp import web
 
 import aioweb.core
 from aioweb.contrib.auth import authenticate, AuthError, forget_user, redirect_authenticated
+from aioweb.contrib.auth.helpers.validators import sub_email_or_phone
 from aioweb.core.controller.decorators import default_layout
 from aioweb.conf import settings
 from aioweb.util import import_controller, awaitable
@@ -9,7 +11,6 @@ from aioweb.util import import_controller, awaitable
 
 @default_layout('base.html')
 class AuthController(aioweb.core.Controller):
-
     async def index(self):
         await redirect_authenticated(self.request)
         if hasattr(settings, 'AUTH_INDEX_HANDLER'):
@@ -21,7 +22,9 @@ class AuthController(aioweb.core.Controller):
     async def login(self):
         data = await self.request.post()
         try:
-            await authenticate(self.request, data.get('username'), data.get('password'), remember=True)
+            username = sub_email_or_phone(data.get('username', ''))
+
+            await authenticate(self.request, username, data.get('password'), remember=True)
         except AuthError as e:
             if self.request.is_ajax():
                 raise web.HTTPForbidden(reason=str(e))

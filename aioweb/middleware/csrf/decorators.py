@@ -17,4 +17,5 @@ def disable_csrf(only=tuple(), exclude=tuple()):
             if name not in exclude and (name in only or len(only) == 0) and not hasattr(member, 'csrf_disabled'):
                 setattr(member, 'csrf_disabled', True)
         return cls
+
     return decorate

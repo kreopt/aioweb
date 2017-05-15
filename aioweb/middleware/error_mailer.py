@@ -16,16 +16,16 @@ async def mail_traceback(request):
         post = await request.post()
 
         await send_mail(request.app,
-                  sender='%s service <noreply@%s>' % (settings.BRAND, request.url.host),
-                  recipients=tuple(e for e in getattr(settings, 'ADMINS', [])),
-                  subject='%s error report at %s -> %s' % (settings.BRAND, request.method, request.url),
-                  body="%s\n\nmatch:\n%s\n\nPOST:\n%s\n\nGET:\n%s\n\nHEADERS:\n%s" % (
-                        trace,
-                        request.match_info,
-                        post,
-                        request.query,
-                        request.headers
-                    ))
+                        sender='%s service <noreply@%s>' % (settings.BRAND, request.url.host),
+                        recipients=tuple(e for e in getattr(settings, 'ADMINS', [])),
+                        subject='%s error report at %s -> %s' % (settings.BRAND, request.method, request.url),
+                        body="%s\n\nmatch:\n%s\n\nPOST:\n%s\n\nGET:\n%s\n\nHEADERS:\n%s" % (
+                            trace,
+                            request.match_info,
+                            post,
+                            request.query,
+                            request.headers
+                        ))
 
     except aiosmtplib.errors.SMTPConnectError as e:
         web_logger.warn("Failed to connect to SMTP server\n%s" % e.message)
@@ -44,4 +44,5 @@ async def middleware(app, handler):
         except Exception as e:
             await mail_traceback(request)
             raise e
+
     return middleware_handler

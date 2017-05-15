@@ -10,6 +10,7 @@ from aioweb.conf import settings
 
 PRE_DISPATCHERS = []
 
+
 async def setup_middlewares(app):
     app.middlewares.append(is_ajax)
     app.middlewares.append(csrf_token)

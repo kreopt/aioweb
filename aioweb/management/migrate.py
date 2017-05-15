@@ -8,7 +8,8 @@ def run(*args, **kwargs):
     oldcwd = os.getcwd()
     try:
         os.mkdir(os.path.join(settings.BASE_DIR, 'db'))
-    except: pass
+    except:
+        pass
 
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
     print("[ app ]")
@@ -25,4 +26,3 @@ def run(*args, **kwargs):
             'egg': os.path.dirname(importlib.util.find_spec(app).origin)
         })
     os.chdir(oldcwd)
-

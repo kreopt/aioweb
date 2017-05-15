@@ -29,6 +29,7 @@ def init_db_engine():
         Model.get_connection_resolver().disconnect()
     Model.set_connection_resolver(DatabaseManager(dbconfig))
 
+
 async def init_db(app):
     db_conf = get_dbconfig()
 
@@ -39,7 +40,7 @@ async def init_db(app):
         for db in db_conf.values():
             if isinstance(db, dict) and db.get('driver') == 'sqlite':
                 db['database'] = os.path.join(settings.BASE_DIR, 'db', db.get('database', 'db.sqlite3'))
-            # web_logger.warn("database path: %s" % db_conf['database'])
+                # web_logger.warn("database path: %s" % db_conf['database'])
         db = DatabaseManager(db_conf)
         Model.set_connection_resolver(db)
         setattr(app, 'db', db)
@@ -62,7 +63,9 @@ async def db_to_request(app, handler):
         except ModelNotFound:
             raise web.HTTPNotFound()
         return res
+
     return middleware_handler
+
 
 async def setup(app):
     # create connection to the database

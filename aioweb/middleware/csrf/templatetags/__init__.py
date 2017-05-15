@@ -3,6 +3,7 @@ from jinja2 import nodes
 
 import aioweb.middleware.csrf
 
+
 class CsrfTag(Extension):
     """
     Implements django's `{% csrf_token %}` tag.
@@ -18,7 +19,7 @@ class CsrfTag(Extension):
             csrf_token = ''
         call = self.call_method(
             '_csrf_token',
-            [nodes.Const(csrf_token)],#nodes.Name('csrf_token', 'load', lineno=lineno)
+            [nodes.Const(csrf_token)],  # nodes.Name('csrf_token', 'load', lineno=lineno)
             lineno=lineno
         )
         return nodes.Output([nodes.MarkSafe(call)])
@@ -27,5 +28,5 @@ class CsrfTag(Extension):
         if not csrf_token or csrf_token == 'NOTPROVIDED':
             return ''
         else:
-            return '<input type="hidden" name="{}" value="{}" />'.format(aioweb.middleware.csrf.CSRF_FIELD_NAME, csrf_token)
-
+            return '<input type="hidden" name="{}" value="{}" />'.format(aioweb.middleware.csrf.CSRF_FIELD_NAME,
+                                                                         csrf_token)

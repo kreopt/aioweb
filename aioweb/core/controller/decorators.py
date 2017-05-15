@@ -14,12 +14,15 @@ class ProcessDescriptor(Enum):
     ONLY = 'only'
     EXCEPT = 'exclude'
 
+
 def before(before_fn):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
             before_fn(self)
             return fn(self, *args, **kwargs)
+
         return decorated
+
     return decorator
 
 
@@ -31,9 +34,12 @@ def before_action(fn, only=tuple(), exclude=tuple()):
             if name not in exclude and (name in only or len(only) == 0):
                 # setattr(cls, name, before(fn)(member))
                 getattr(cls, '__BEFORE_ACTIONS').insert(0,
-                    {ProcessDescriptor.FN: fn, ProcessDescriptor.ONLY: only, ProcessDescriptor.EXCEPT: exclude})
+                                                        {ProcessDescriptor.FN: fn, ProcessDescriptor.ONLY: only,
+                                                         ProcessDescriptor.EXCEPT: exclude})
         return cls
+
     return decorate
+
 
 ##
 ## Render
@@ -43,6 +49,7 @@ def default_layout(layout_name):
     def decorate(cls):
         setattr(cls, 'LAYOUT', layout_name)
         return cls
+
     return decorate
 
 
@@ -51,17 +58,21 @@ def template(template_name):
         def decorated(self, *args, **kwargs):
             aioweb.core.controller.Controller.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
+
         return decorated
+
     return decorator
+
 
 def layout(template_name):
     def decorator(fn):
         def decorated(self, *args, **kwargs):
             aioweb.core.controller.Controller.template.fset(self, template_name)
             return fn(self, *args, **kwargs)
-        return decorated
-    return decorator
 
+        return decorated
+
+    return decorator
 
 
 ##
@@ -75,5 +86,7 @@ def redirect_on_success(action_name, prefix=None):
             if not self.request.is_ajax():
                 return web.HTTPFound(self.url_for(action_name, prefix))
             return res
+
         return decorated
+
     return decorator

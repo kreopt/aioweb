@@ -24,7 +24,7 @@ REQUEST_KEY = 'AIOWEB_AUTH'
 
 def get_user_by_name(login):
     try:
-        return USER_MODEL.where_raw('username=?', [login]).first_or_fail()
+        return USER_MODEL.where_raw('email=? or phone=?', [login, login]).first_or_fail()
     except ModelNotFound:
         return None
 
@@ -77,6 +77,7 @@ async def authenticate_user(request, user, remember=False, validators=tuple()):
 
     return user
 
+
 async def authenticate(request, username, password, remember=False, validators=tuple()):
     user = get_user_by_name(username)
     if user:
@@ -103,6 +104,7 @@ async def remember_user(request):
 async def forget_user(request):
     check_request_key(request)
     request[REQUEST_KEY]['forget'] = True
+
 
 async def redirect_authenticated(request):
     if request.user.is_authenticated():

@@ -2,6 +2,7 @@ import importlib
 
 from aioweb import settings
 
+
 async def setup(app):
     try:
         importlib.import_module("app.config.admin")

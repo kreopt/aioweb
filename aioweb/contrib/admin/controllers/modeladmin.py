@@ -8,7 +8,6 @@ from aioweb.admin import MODELS, form
 
 
 class ModeladminController(aioweb.core.Controller):
-
     def __init__(self, app):
         super().__init__(app)
         self._defaultLayout = 'base.html'
@@ -120,14 +119,14 @@ class ModeladminController(aioweb.core.Controller):
                 try:
                     field_instances.append(
                         [field[0], form.FieldInstance(request, field[1], "%s.%s" % (inline[0].__name__, field[0]),
-                                                 getattr(iitem, field[0]))])
+                                                      getattr(iitem, field[0]))])
                 except AttributeError:
                     pass
 
         for field in fields:
             try:
                 field_instances.append([field[0], form.FieldInstance(request, field[1], "%s.%s" % (
-                MODELS[request.match_info['model']].__name__, field[0]), getattr(item, field[0]))])
+                    MODELS[request.match_info['model']].__name__, field[0]), getattr(item, field[0]))])
             except AttributeError:
                 pass
         return {

@@ -8,7 +8,7 @@ from aioweb.conf import settings
 class ConfigReader(object):
     def __init__(self, file) -> None:
         super().__init__()
-        self.config={}
+        self.config = {}
         with open(os.path.join(settings.BASE_DIR, file), 'r') as stream:
             self.config = yaml.load(stream)
 

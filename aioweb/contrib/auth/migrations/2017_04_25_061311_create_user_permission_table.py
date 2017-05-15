@@ -1,8 +1,7 @@
 from orator.migrations import Migration
 
-
+# TODO: deprecate it
 class CreateUserPermissionTable(Migration):
-
     def up(self):
         """
         Run the migrations.

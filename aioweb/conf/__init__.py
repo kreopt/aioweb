@@ -15,7 +15,6 @@ ENVIRONMENT_VARIABLE = "AIOWEB_SETTINGS_MODULE"
 
 
 class ImproperlyConfigured(BaseException):
-
     def __init__(self, reason):
         self.reason = reason
 
@@ -27,6 +26,7 @@ class BaseSettings(object):
     """
     Common logic for settings whether set by a module or by the user.
     """
+
     def __setattr__(self, name, value):
         if name in ("MEDIA_URL", "STATIC_URL") and value and not value.endswith('/'):
             raise ImproperlyConfigured("If set, %s must end with a slash" % name)
@@ -115,5 +115,6 @@ class UserSettingsHolder(BaseSettings):
         return '<%(cls)s>' % {
             'cls': self.__class__.__name__,
         }
+
 
 settings = Settings(os.environ.get(ENVIRONMENT_VARIABLE))

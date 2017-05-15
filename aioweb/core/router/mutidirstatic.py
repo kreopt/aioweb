@@ -10,9 +10,8 @@ from yarl import unquote, URL
 
 
 class StaticMultidirResource(StaticResource):
-
     def __init__(self, prefix, directories, *, name=None,
-                 expect_handler=None, chunk_size=256*1024,
+                 expect_handler=None, chunk_size=256 * 1024,
                  response_factory=StreamResponse,
                  show_index=False, follow_symlinks=False):
         super(StaticResource, self).__init__(prefix, name=name)
@@ -71,7 +70,6 @@ class StaticMultidirResource(StaticResource):
             raise HTTPNotFound
 
         return ret
-
 
     def __repr__(self):
         name = "'" + self.name + "'" if self.name is not None else ""

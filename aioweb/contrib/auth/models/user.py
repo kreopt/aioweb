@@ -1,6 +1,6 @@
 from orator.orm import has_many, belongs_to_many
 
-from aioweb.core.model import Model, mutator
+from aioweb.core.model import Model, mutator, accessor
 from passlib.handlers.sha2_crypt import sha256_crypt
 from aioweb.contrib.auth.models import permission
 from aioweb.contrib.auth.models import group
@@ -31,7 +31,7 @@ class User(Model, AbstractUser):
 
     def can(self, permission):
         # TODO: check it
-        return self.permissions.has(permission).get()# or self.groups.perimissions.has(permission).get()
+        return self.permissions.has(permission).get()  # or self.groups.perimissions.has(permission).get()
 
     @belongs_to_many('user_permissions')
     def permissions(self):
@@ -40,6 +40,10 @@ class User(Model, AbstractUser):
     @belongs_to_many('user_groups')
     def groups(self):
         return group.Group
+
+    @accessor
+    def username(self):
+        return self.phone if self.phone else self.email
 
     def __str__(self):
         return self.username
