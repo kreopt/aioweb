@@ -30,6 +30,7 @@ def locate_file(fname):
             return path
     return None
 
+
 def get_dbconfig(settings):
     with open(os.path.join(settings.BASE_DIR, "config/database.yml"), "r") as f:
         dbconfig = yaml.load(f.read())
@@ -48,19 +49,23 @@ def init_orator(settings):
     from orator import Model
     dbconfig = get_dbconfig(settings)
 
-    if Model.get_connection_resolver(): Model.get_connection_resolver().disconnect()
+    if Model.get_connection_resolver():
+        Model.get_connection_resolver().disconnect()
     Model.set_connection_resolver(DatabaseManager(dbconfig))
 
 
 answer = None
+
+
 def always_say_yes():
     global answer
     answer = 'y'
-    
+
 
 def always_say_no():
     global answer
     answer = 'n'
+
 
 def ask(question, answers=["y", "n"]):
     global answer
@@ -78,7 +83,8 @@ def names(word, format=[]):
     ret["table"] = inflection.tableize(word)
     ret["model"] = inflection.singularize(ret["table"])
     ret["class"] = inflection.camelize(ret["model"])
-    if not format: return ret
+    if not format:
+        return ret
     ret = [ret[k] for k in format]
     return ret[0] if len(ret) == 1 else ret
 
@@ -94,12 +100,15 @@ def dirs(settings, app=None, format=[], check=False):
     ret["controllers"] = os.path.join(base_dir, "controllers" if app else "app/controllers")
     ret["views"] = os.path.join(base_dir, "views" if app else "app/views")
     ret["migrations"] = os.path.join(base_dir, "migrations" if app else "db/migrations")
+    ret["seeds"] = os.path.join(base_dir, "seeds" if app else "db/seeds")
     ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["tests_controllers"] = os.path.join(base_dir, "tests/controllers") if not app else None
     if check:
         for k in ret.keys():
-            if ret[k] and not os.path.exists(ret[k]): ret[k] = None
-    if not format: return ret
+            if ret[k] and not os.path.exists(ret[k]):
+                ret[k] = None
+    if not format:
+        return ret
     ret = [ret[k] for k in format]
     return ret[0] if len(ret) == 1 else ret
 
@@ -110,7 +119,7 @@ def get_import(category, component, app=None):
 
 def get_template(subpath, settings=None):
     if settings:
-        path = os.path.join( dirs(settings, format=["generators"]), subpath)
+        path = os.path.join(dirs(settings, format=["generators"]), subpath)
         if os.path.exists(path):
             return path
 
@@ -175,7 +184,8 @@ def insert_in_python(file_name, search, code_lines, in_end=False, ignore_pass=Fa
                 if not ignore_pass and lines[nn].strip() == 'pass':
                     del lines[nn]
                     nn - 1
-                if not in_end: nn -= 1
+                if not in_end:
+                    nn -= 1
             if n_indent != base_indent and in_end:
                 n = nn
                 for i, line in enumerate(lines[nn:]):
@@ -215,5 +225,6 @@ def patch(file_name, search, fx):
 
 def indent(line):
     s = re.search(r'\S', line)
-    if not s: return None
+    if not s:
+        return None
     return line[:s.span()[0]]

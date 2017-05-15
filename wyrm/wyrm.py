@@ -8,6 +8,7 @@ os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
 if os.environ.get("AIOWEB_SETTINGS_DIR"):
     sys.path.append(os.environ.get("AIOWEB_SETTINGS_DIR"))
 sys.path.append(os.getcwd())
+
 import wyrm.lib as lib
 
 commands = {}
@@ -20,11 +21,11 @@ modules = []
 try:
     from aioweb.conf import settings
 except ImportError as e:
-    #traceback.print_exc()
+    # traceback.print_exc()
     settings = None
 
 if settings:
-    modules_dirs.append( os.path.join(settings.BASE_DIR, "wyrm/modules") )
+    modules_dirs.append(os.path.join(settings.BASE_DIR, "wyrm/modules"))
     sys.path.append(os.path.join(settings.BASE_DIR, "wyrm"))
 
     # sys.path.append( modules_dir )
@@ -33,7 +34,8 @@ if settings:
             mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
             if mods:
                 r = root.replace(modules_dir, '').replace('/', '.')
-                if r.startswith('.'): r = r[1:]
+                if r.startswith('.'):
+                    r = r[1:]
                 if r:
                     modules += [r + '.' + module for module in mods]
                 else:
@@ -42,7 +44,7 @@ if settings:
     commands["d"] = "destroy"
     commands["t"] = "test"
     commands["delete"] = "destroy"
-    modules=list(set(modules))
+    modules = list(set(modules))
 else:
     modules = ['new']
     for modules_dir in modules_dirs:
@@ -50,7 +52,8 @@ else:
             mods = [f.replace(".py", "") for f in files if f.endswith(".py") and not f.startswith("__")]
             if mods:
                 r = root.replace(modules_dir, '').replace('/', '.')
-                if r.startswith('.'): r = r[1:]
+                if r.startswith('.'):
+                    r = r[1:]
                 if r:
                     modules += [r + '.' + module for module in mods]
                 else:
@@ -85,10 +88,12 @@ for module in modules:
 
 sys.path.append(os.path.dirname(__file__))
 
+
 def print_cmd(co, n=1, addr=[]):
     for k in sorted(co.keys(), key=lambda k: ("zzzz" + k) if type(co[k]) == dict else k):
         if type(co[k]) == dict:
-            if n == 1: print("")
+            if n == 1:
+                print("")
             aliases = [a for a in co.keys() if co[a] == k]
             print("  " * n + ", ".join([k] + aliases))
             print_cmd(co[k], n + 1, addr + [k])

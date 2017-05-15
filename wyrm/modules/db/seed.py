@@ -1,11 +1,11 @@
 import sys
 import os
 
-brief = "migrate the database"
+brief = "seed the database"
 
 
 def usage(argv0):
-    print("Usage: {} db migrate".format(argv0))
+    print("Usage: {} db seed".format(argv0))
     sys.exit(1)
 
 
@@ -29,22 +29,23 @@ def execute(argv, argv0, engine):
 
     for app in settings.APPS:
         print("[ %s ]" % app)
-        migrations_dir = lib.dirs(settings, format=["migrations"], app=app)
-        print("%(migrations_dir)s" % {'migrations_dir': migrations_dir})
+        seeds_dir = lib.dirs(settings, format=["seeds"], app=app)
+        print("%(seeds_dir)s" % {'seeds_dir': seeds_dir})
 
-        os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s" % {
+        os.system("echo y | orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s" % {
             'environment': environment,
             'base': settings.BASE_DIR,
-            'migrations_dir': migrations_dir,
+            'seeds_dir': seeds_dir,
         })
 
     print("[ app ]")
-    migrations_dir = lib.dirs(settings, format=["migrations"])
+    seeds_dir = lib.dirs(settings, format=["seeds"])
+    print("%(seeds_dir)s" % {'seeds_dir': seeds_dir})
 
-    os.system("echo y | orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s" % {
+    os.system("echo y | orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s" % {
         'environment': environment,
         'base': settings.BASE_DIR,
-        'migrations_dir': migrations_dir,
+        'seeds_dir': seeds_dir,
     })
 
     os.chdir(oldcwd)
