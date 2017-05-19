@@ -2,7 +2,12 @@ import re
 
 
 def sub_phone(raw):
-    return re.sub('[^0-9]', '', raw)[-10:]
+    if raw is None:
+        return None
+    r = re.sub('[^0-9]', '', raw)[-10:]
+    if not len(r):
+        return None
+    return r
 
 
 def sub_email_or_phone(raw):

@@ -30,7 +30,7 @@ class AuthController(aioweb.core.Controller):
                 raise web.HTTPForbidden(reason=str(e))
             else:
                 self.flash['AUTH_ERROR'] = str(e)
-                raise web.HTTPFound(self.url_for('index'))
+                raise web.HTTPFound(self.path_for('index'))
 
         await redirect_authenticated(self.request)
         raise web.HTTPForbidden(reason='Unauthenticated')  # This should not happen

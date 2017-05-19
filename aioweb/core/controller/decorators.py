@@ -84,7 +84,7 @@ def redirect_on_success(action_name, prefix=None):
         async def decorated(self, *args, **kwargs):
             res = await fn(self, *args, **kwargs)
             if not self.request.is_ajax():
-                return web.HTTPFound(self.url_for(action_name, prefix))
+                return web.HTTPFound(self.path_for(action_name, prefix))
             return res
 
         return decorated
