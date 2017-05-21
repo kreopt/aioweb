@@ -1,3 +1,4 @@
+import os
 import platform
 
 BRAND = 'Aioweb'
@@ -17,6 +18,8 @@ MIDDLEWARES = [
 ]
 
 STATIC_URL = '/static/'
+
+BASE_DIR = os.getcwd()
 
 CONFIG = {
 }

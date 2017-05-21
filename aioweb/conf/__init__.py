@@ -9,6 +9,9 @@ a list of all possible variables.
 import importlib
 import os
 import time
+
+from aiohttp.log import web_logger
+
 from . import global_settings
 
 ENVIRONMENT_VARIABLE = "AIOWEB_SETTINGS_MODULE"
@@ -42,22 +45,27 @@ class Settings(BaseSettings):
 
         # store the settings module in case someone later cares
         self.SETTINGS_MODULE = settings_module
+        if self.SETTINGS_MODULE:
+            try:
+                mod = importlib.import_module(self.SETTINGS_MODULE)
 
-        mod = importlib.import_module(self.SETTINGS_MODULE)
+                tuple_settings = (
+                    "APPS",
+                )
+                self._explicit_settings = set()
+                for setting in dir(mod):
+                    if setting.isupper():
+                        setting_value = getattr(mod, setting)
 
-        tuple_settings = (
-            "APPS",
-        )
-        self._explicit_settings = set()
-        for setting in dir(mod):
-            if setting.isupper():
-                setting_value = getattr(mod, setting)
-
-                if (setting in tuple_settings and
-                        not isinstance(setting_value, (list, tuple))):
-                    raise ImproperlyConfigured("The %s setting must be a list or a tuple. " % setting)
-                setattr(self, setting, setting_value)
-                self._explicit_settings.add(setting)
+                        if (setting in tuple_settings and
+                                not isinstance(setting_value, (list, tuple))):
+                            raise ImproperlyConfigured("The %s setting must be a list or a tuple. " % setting)
+                        setattr(self, setting, setting_value)
+                        self._explicit_settings.add(setting)
+            except ImportError:
+                web_logger.warn("Failed to import settings module")
+        else:
+            web_logger.warn("No settings module specified")
 
     def is_overridden(self, setting):
         return setting in self._explicit_settings

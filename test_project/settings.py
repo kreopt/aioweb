@@ -3,8 +3,8 @@ import os
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 
 APPS = [
-    'aioweb.contrib.admin',
-    'aioweb.contrib.auth',
+    'aioweb_admin',
+    'aioweb_auth',
 ]
 
 MIDDLEWARES = [
