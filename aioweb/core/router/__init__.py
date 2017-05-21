@@ -13,7 +13,7 @@ from .mutidirstatic import StaticMultidirResource
 
 
 class Router(object):
-    def __init__(self, app, name='', prefix='', parent=None, package='app', pre_dispatchers=tuple()):
+    def __init__(self, app, name='', prefix='', parent=None, package=None, pre_dispatchers=tuple()):
         self.app = app
         self.name = name
         self.prefix = prefix

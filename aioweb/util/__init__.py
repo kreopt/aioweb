@@ -25,12 +25,12 @@ def get_own_properties(cls, predicate=inspect.isfunction):
     return [e for e in inspect.getmembers(cls, inspect.isfunction) if e[0] in cls.__dict__]
 
 
-def import_controller(name, package='app'):
+def import_controller(name, package=None):
     if type(name) != str:
         raise AssertionError('controller name should be string')
     ctrl_class_name = inflection.camelize("%s_controller" % name)
 
-    mod = importlib.import_module("%s.controllers.%s" % (package if package else 'app', name))
+    mod = importlib.import_module("%sapp.controllers.%s" % (("%s." % package) if package else '', name))
 
     ctrl_class = getattr(mod, ctrl_class_name)
 

@@ -18,7 +18,7 @@ async def setup(app):
     ]
     for app_name in settings.APPS:
         try:
-            app_loaders.append(jinja2.PackageLoader(app_name, "views"))
+            app_loaders.append(jinja2.PackageLoader(app_name, "app/views"))
         except ImportError as e:
             pass
     aiohttp_jinja2.setup(
