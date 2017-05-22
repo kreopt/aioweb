@@ -60,6 +60,7 @@ def execute(argv, argv0, engine):
     if appdir != dirname:
         print("patching setup.py")
         print(lib.get_template("setup.py"))
+        shutil.copy2(lib.get_template("setup.cfg"), os.path.join(dirname, "setup.cfg") )
         shutil.copy2(lib.get_template("setup.py"), os.path.join(dirname, "setup.py") )
         with open(os.path.join(dirname, "setup.py"), "r") as f: setup_py = f.read().replace("APP_NAME", name)
         with open(os.path.join(dirname, "setup.py"), "w") as f: f.write( setup_py )

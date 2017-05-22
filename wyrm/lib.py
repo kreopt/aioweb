@@ -91,16 +91,17 @@ def names(word, format=[]):
 
 def dirs(settings, app=None, format=[], check=False):
     base_dir = os.path.dirname(importlib.util.find_spec(app).origin) if app  else settings.BASE_DIR
+    if app: print(base_dir)
     ret = {}
     ret["generators"] = os.path.join(base_dir, "wyrm/generators")
     ret["config"] = os.path.join(base_dir, "config")
     ret["tests"] = os.path.join(base_dir, "tests")
     ret["factories"] = os.path.join(base_dir, "tests/factories")
-    ret["models"] = os.path.join(base_dir, "models" if app else "app/models")
-    ret["controllers"] = os.path.join(base_dir, "controllers" if app else "app/controllers")
-    ret["views"] = os.path.join(base_dir, "views" if app else "app/views")
-    ret["migrations"] = os.path.join(base_dir, "migrations" if app else "db/migrations")
-    ret["seeds"] = os.path.join(base_dir, "seeds" if app else "db/seeds")
+    ret["models"] = os.path.join(base_dir, "app/models")
+    ret["controllers"] = os.path.join(base_dir, "app/controllers")
+    ret["views"] = os.path.join(base_dir, "app/views")
+    ret["migrations"] = os.path.join(base_dir, "db/migrations")
+    ret["seeds"] = os.path.join(base_dir, "db/seeds")
     ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["tests_controllers"] = os.path.join(base_dir, "tests/controllers") if not app else None
     if check:
@@ -114,7 +115,7 @@ def dirs(settings, app=None, format=[], check=False):
 
 
 def get_import(category, component, app=None):
-    return (app if app else "app") + ".{}.{}".format(category, component)
+    return ("{}.app".format(app) if app else "app") + ".{}.{}".format(category, component)
 
 
 def get_template(subpath, settings=None):
