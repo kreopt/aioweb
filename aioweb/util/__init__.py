@@ -34,7 +34,8 @@ def import_controller(name, package=None):
 
     ctrl_class = getattr(mod, ctrl_class_name)
 
-    ctrl_class_name = '.'.join((package, name))
+    if package:
+        ctrl_class_name = '.'.join((package, name))
     return ctrl_class, ctrl_class_name
 
 
