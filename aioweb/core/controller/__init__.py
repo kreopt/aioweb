@@ -24,7 +24,8 @@ class Controller(object):
             template=None,
             router=router,
             session=None,
-            flash=None
+            flash=None,
+            headers=[]
         )
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
@@ -85,11 +86,11 @@ class Controller(object):
 
         # TODO: something better
         beforeActionRes = {}
-        for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
-            if actionName not in beforeAction[ProcessDescriptor.EXCEPT] and \
-                    (actionName in beforeAction[ProcessDescriptor.ONLY] or
-                             len(beforeAction[ProcessDescriptor.ONLY]) == 0):
-                res = await awaitable(beforeAction[ProcessDescriptor.FN](self))
+        for corsDomain in getattr(self.__class__, '__BEFORE_ACTIONS', []):
+            if actionName not in corsDomain[ProcessDescriptor.EXCEPT] and \
+                    (actionName in corsDomain[ProcessDescriptor.ONLY] or
+                             len(corsDomain[ProcessDescriptor.ONLY]) == 0):
+                res = await awaitable(corsDomain[ProcessDescriptor.FN](self))
 
                 if isinstance(res, web.Response):
                     return res
@@ -114,10 +115,19 @@ class Controller(object):
         accept = self.request.headers['accept']
 
         if accept.startswith('application/json'):
-            self._private.flash.sync()
-            return web.json_response(res)
+            response = web.json_response(res)
+        else:
+            response = self.render(res)
 
-        response = self.render(res)
+        # if self._private.headers:
+        #     for header in self._private.headers:
+        #         response.headers[header] = self._private.headers[header]
+        
+        corsDomain = getattr(self.__class__, '__CORS')
+        if actionName not in corsDomain[ProcessDescriptor.EXCEPT] and \
+                (actionName in corsDomain[ProcessDescriptor.ONLY] or
+                         len(corsDomain[ProcessDescriptor.ONLY]) == 0):
+            response.headers['Access-Control-Allow-Origin'] = corsDomain[ProcessDescriptor.FN]
 
         self._private.flash.sync()
         return response

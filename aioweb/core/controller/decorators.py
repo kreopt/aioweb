@@ -41,6 +41,17 @@ def before_action(fn, only=tuple(), exclude=tuple()):
     return decorate
 
 
+def cors(hosts, only=tuple(), exclude=tuple()):
+    def decorate(cls):
+        if not hasattr(cls, '__CORS'):
+            setattr(cls, '__CORS', {ProcessDescriptor.FN: hosts,
+                                    ProcessDescriptor.ONLY: only,
+                                    ProcessDescriptor.EXCEPT: exclude})
+        return cls
+
+    return decorate
+
+
 ##
 ## Render
 ##
