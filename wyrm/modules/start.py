@@ -11,8 +11,8 @@ def execute(argv, argv0, engine):
 
     import asyncio
     import logging
-    import settings
     import aioweb
+    from aioweb.conf import settings
     async def init(loop, argv):
         # setup application and extensions
         app = aioweb.Application(loop=loop)
