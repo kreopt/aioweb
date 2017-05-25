@@ -4,7 +4,7 @@ from aiohttp import web
 from aiohttp_jinja2 import APP_KEY
 from aiohttp_session import get_session
 
-from aioweb.core.controller.decorators import ProcessDescriptor
+from aioweb.core.controller.decorators import CtlDecoratorDescriptor
 from aioweb.core.controller.strong_parameters import StrongParameters
 from aioweb.modules import template
 from aioweb.modules.session.flash import Flash
@@ -87,10 +87,10 @@ class Controller(object):
         # TODO: something better
         beforeActionRes = {}
         for corsDomain in getattr(self.__class__, '__BEFORE_ACTIONS', []):
-            if actionName not in corsDomain[ProcessDescriptor.EXCEPT] and \
-                    (actionName in corsDomain[ProcessDescriptor.ONLY] or
-                             len(corsDomain[ProcessDescriptor.ONLY]) == 0):
-                res = await awaitable(corsDomain[ProcessDescriptor.FN](self))
+            if actionName not in corsDomain[CtlDecoratorDescriptor.EXCEPT] and \
+                    (actionName in corsDomain[CtlDecoratorDescriptor.ONLY] or
+                             len(corsDomain[CtlDecoratorDescriptor.ONLY]) == 0):
+                res = await awaitable(corsDomain[CtlDecoratorDescriptor.VAL](self))
 
                 if isinstance(res, web.Response):
                     return res
@@ -122,12 +122,17 @@ class Controller(object):
         # if self._private.headers:
         #     for header in self._private.headers:
         #         response.headers[header] = self._private.headers[header]
-        
-        corsDomain = getattr(self.__class__, '__CORS')
-        if actionName not in corsDomain[ProcessDescriptor.EXCEPT] and \
-                (actionName in corsDomain[ProcessDescriptor.ONLY] or
-                         len(corsDomain[ProcessDescriptor.ONLY]) == 0):
-            response.headers['Access-Control-Allow-Origin'] = corsDomain[ProcessDescriptor.FN]
+
+        try:
+            headers = getattr(self.__class__, '__HEADERS')
+            for name in headers:
+                descriptior = headers[name]
+                if actionName not in descriptior[CtlDecoratorDescriptor.EXCEPT] and \
+                        (actionName in descriptior[CtlDecoratorDescriptor.ONLY] or
+                                 len(descriptior[CtlDecoratorDescriptor.ONLY]) == 0):
+                    response.headers[name] = descriptior[CtlDecoratorDescriptor.VAL]
+        except AttributeError:
+            pass
 
         self._private.flash.sync()
         return response

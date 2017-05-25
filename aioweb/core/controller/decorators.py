@@ -9,8 +9,8 @@ import aioweb.core.controller
 from aioweb.util import get_own_properties
 
 
-class ProcessDescriptor(Enum):
-    FN = 'fn'
+class CtlDecoratorDescriptor(Enum):
+    VAL = 'val'
     ONLY = 'only'
     EXCEPT = 'exclude'
 
@@ -34,8 +34,8 @@ def before_action(fn, only=tuple(), exclude=tuple()):
             if name not in exclude and (name in only or len(only) == 0):
                 # setattr(cls, name, before(fn)(member))
                 getattr(cls, '__BEFORE_ACTIONS').insert(0,
-                                                        {ProcessDescriptor.FN: fn, ProcessDescriptor.ONLY: only,
-                                                         ProcessDescriptor.EXCEPT: exclude})
+                                                        {CtlDecoratorDescriptor.VAL: fn, CtlDecoratorDescriptor.ONLY: only,
+                                                         CtlDecoratorDescriptor.EXCEPT: exclude})
         return cls
 
     return decorate
@@ -43,10 +43,27 @@ def before_action(fn, only=tuple(), exclude=tuple()):
 
 def cors(hosts, only=tuple(), exclude=tuple()):
     def decorate(cls):
-        if not hasattr(cls, '__CORS'):
-            setattr(cls, '__CORS', {ProcessDescriptor.FN: hosts,
-                                    ProcessDescriptor.ONLY: only,
-                                    ProcessDescriptor.EXCEPT: exclude})
+        if not hasattr(cls, '__HEADERS'):
+            setattr(cls, '__HEADERS', {})
+        getattr(cls, '__HEADERS')['Access-Control-Allow-Origin'] = {
+            CtlDecoratorDescriptor.VAL: hosts,
+            CtlDecoratorDescriptor.ONLY: only,
+            CtlDecoratorDescriptor.EXCEPT: exclude
+        }
+        return cls
+
+    return decorate
+
+
+def header(key, value, only=tuple(), exclude=tuple()):
+    def decorate(cls):
+        if not hasattr(cls, '__HEADERS'):
+            setattr(cls, '__HEADERS', {})
+        getattr(cls, '__HEADERS')[key] = {
+            CtlDecoratorDescriptor.VAL: value,
+            CtlDecoratorDescriptor.ONLY: only,
+            CtlDecoratorDescriptor.EXCEPT: exclude
+        }
         return cls
 
     return decorate
