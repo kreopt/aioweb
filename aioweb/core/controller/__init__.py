@@ -40,7 +40,7 @@ class Controller(object):
                                  self.path_for(action, prefix))
 
     async def params(self):
-        return await StrongParameters().parse(self.request)
+        return (await StrongParameters().parse(self.request)).with_routes(self.request)
 
     @property
     def session(self):

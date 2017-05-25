@@ -20,6 +20,7 @@ search_paths = [
 # def dirs
 # def get_import
 # def get_template
+# def read_template
 # def insert_in_python
 # def indent
 
@@ -83,6 +84,7 @@ def names(word, format=[]):
     ret["table"] = inflection.tableize(word)
     ret["model"] = inflection.singularize(ret["table"])
     ret["class"] = inflection.camelize(ret["model"])
+    ret["crud_class"] = inflection.camelize( ret["table"] + "_controller")
     if not format:
         return ret
     ret = [ret[k] for k in format]
@@ -129,6 +131,14 @@ def get_template(subpath, settings=None):
         if os.path.exists(path):
             return path
     return None
+
+def read_template(subpath, settings=None, replacements={}):
+    template_file = get_template(subpath, settings=settings)
+    with open(template_file, "r") as f:
+        content = f.read()
+        for key in reversed(sorted(replacements.keys())):
+            content = content.replace(key, replacements[key])
+        return content
 
 
 def get_fields_from_argv(argv, usage, argv0):

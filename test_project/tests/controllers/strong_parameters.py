@@ -12,6 +12,7 @@ from aioweb.core.controller.strong_parameters import StrongParameters
 
 class test_StrongParametersController(wyrm.base_test.AioWebTestCase):
     start_server=True
+    refresh_db_before_test = False
     def setUp( self ):
         super().setUp()
 

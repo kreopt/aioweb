@@ -1,0 +1,24 @@
+{% extends controller.layout %}
+{% block content %}
+  <h1>index</h1>
+  <table>
+    <tr>
+      {% for field_name in fields %}
+        <th>{{field_name}}</th>
+      {% endfor %}
+        <th></th>
+    </tr>
+    {% for model in collection %}
+      <tr>
+      {% for field_name in fields %}
+        <td>{{model|attr(field_name)}}</td>
+      {% endfor %}
+        <td>
+          <a href="/TABLE/{{model.id}}/edit">edit</a>
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <a href="{{controller.path_for('add_page')}}" >create MODEL</a>
+{% endblock %}
+

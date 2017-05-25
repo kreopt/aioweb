@@ -1,0 +1,14 @@
+{% extends controller.layout %}
+{% block content %}
+  <h1>MODEL #{{model.id}}</h1>
+  <ul>
+      {% for field_name in fields %}
+        <li>
+          <strong>{{field_name}}</strong>
+          <br/>
+          {{model|attr(field_name)}}
+        </li>
+      {% endfor %}
+  <ul>
+{% endblock %}
+

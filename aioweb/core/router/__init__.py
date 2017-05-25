@@ -175,6 +175,10 @@ class Router(object):
         if hasattr(controller, 'edit_page'):
             [url, handler, gen_name] = self.resolve_action(controller, 'edit_page')
             rname = ("%s.edit_page" % name) if name else gen_name
+            self._add_route(hdrs.METH_GET, "%s/{id:[0-9]+}/edit" % pref, handler, name=rname)
+        if hasattr(controller, 'get'):
+            [url, handler, gen_name] = self.resolve_action(controller, 'get')
+            rname = ("%s.get" % name) if name else gen_name
             self._add_route(hdrs.METH_GET, "%s/{id:[0-9]+}/" % pref, handler, name=rname)
         if hasattr(controller, 'edit'):
             [url, handler, gen_name] = self.resolve_action(controller, 'edit')

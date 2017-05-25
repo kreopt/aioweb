@@ -61,8 +61,10 @@ def execute(argv, argv0, engine):
                              ["table.{}('{}').nullable()".format(tp, name) for tp, name in additional_fields],
                              in_end=True)
         print("patching " + model_file)
+        fillable = "__fillable__ = [{}]".format(", ".join( ['"{}"'.format(name) for tp, name in additional_fields] ))
+        print(fillable)
         lib.insert_in_python(model_file, ["class"],
-                             ["# {}{} - {}".format(name, (25 - len(name)) * ' ', tp) for tp, name in additional_fields],
+                             [fillable] + ["# {}{} - {}".format(name, (25 - len(name)) * ' ', tp) for tp, name in additional_fields],
                              ignore_pass=True)
 
     print("generating factory")

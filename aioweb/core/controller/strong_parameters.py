@@ -10,6 +10,11 @@ class StrongParameters(dict):
         self.__parse_multi_dict(await request.post())
         return self
 
+    def with_routes(self, request):
+        for k,v in request.match_info.items():
+            self[k]=v
+        return self
+
     def permit(self, *args):
         # Examples:
         #   params = {'a': '1', 'b': '2', 'c': '3', 'd': ['4', '5'], 'e': {'f': '6', 'g': '7'} }

@@ -1,0 +1,4 @@
+<form {% if model.id %} action="/TABLE/{{model.id}}" method="post" {% else %} action="/TABLE/add" method="post" {% endif %}>
+  FORM_FIELDS
+  <input type="submit" value="{% if model.id %}Save{% else %}Create{% endif %}">
+</form>
