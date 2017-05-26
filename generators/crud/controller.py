@@ -15,7 +15,8 @@ def new_model(ctrl):
 @default_layout('base.html')
 class CONTROLLER_CLASS(aioweb.core.Controller):
     async def index(self):
-        return {"collection": MODEL_CLASS.all(), "fields": [MODEL_FIELD_NAMES], "controller": self}
+        self.collection = MODEL_CLASS.all()
+        return {"collection": self.collection, "fields": [MODEL_FIELD_NAMES], "controller": self}
 
     async def get(self):
         return {'model': self.model, "fields": [MODEL_FIELD_NAMES], "controller": self}

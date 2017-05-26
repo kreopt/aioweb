@@ -20,6 +20,7 @@ def execute(argv, argv0, engine):
     sys.path.append(os.getcwd())
     if len(argv) < 2:
         usage(argv0)
+
     controller_name = inflection.camelize(argv[0]) + "Controller"
     controller_file_name = inflection.underscore(argv[0]) + ".py"
 

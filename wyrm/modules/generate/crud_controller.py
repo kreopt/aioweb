@@ -18,7 +18,7 @@ def execute(argv, argv0, engine):
     if len(argv) == 0 or '-h' in argv or '--help' in argv:
         usage(argv0)
     additional_fields = lib.get_fields_from_argv(argv[1:], usage, argv0)
-    controllers_dir, models_dir, views_dir,configs_dir = lib.dirs(settings, format=["controllers", "models", "views", "config"])
+    controllers_dir, models_dir, views_dir, configs_dir = lib.dirs(settings, format=["controllers", "models", "views", "config"])
     table, model_name, model_class, controller_class = lib.names(argv[0], ["table", "model", "class", 'crud_class'])
     controller_file = os.path.join(controllers_dir, "{}.py".format(table))
     views_dir= os.path.join(views_dir, table)
@@ -75,5 +75,6 @@ def execute(argv, argv0, engine):
         print("creating {}...".format(view_file))
         view_code = lib.read_template("crud/{}".format(view_name), settings=settings, replacements=replacements)
         with open(view_file, "w") as f: f.write(view_code)
+    engine["commands"]["generate"]["test"]["crud"](argv, argv0, engine)
 
 
