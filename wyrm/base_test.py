@@ -59,4 +59,4 @@ class AioWebTestCase(unittest.TestCase):
             self.loop.run_until_complete(self.client.start_server())
     def tearDown(self):
         if self.start_server:
-            self.loop.run_until_complete(self.client.start_server())
+            self.loop.run_until_complete(self.client.close())
