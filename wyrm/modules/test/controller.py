@@ -10,7 +10,7 @@ def usage(argv0):
     sys.exit(1)
 
 
-alias = ['m']
+alias = ['c']
 
 
 def execute(argv, argv0, engine):

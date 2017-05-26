@@ -24,7 +24,7 @@ except ImportError as e:
     # traceback.print_exc()
     settings = None
 
-if settings:
+if settings: #and os.path.exists('settings.py'):
     modules_dirs.append(os.path.join(settings.BASE_DIR, "wyrm/modules"))
     sys.path.append(os.path.join(settings.BASE_DIR, "wyrm"))
 
