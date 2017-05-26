@@ -1,0 +1,5 @@
+<form action="{% url 'TABLE.delete' id=model.id %}" method="post">
+  {% csrf_token %}
+  <input type="submit" value="Destroy">
+</form>
+

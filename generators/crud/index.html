@@ -7,6 +7,8 @@
         <th>{{field_name}}</th>
       {% endfor %}
         <th></th>
+        <th></th>
+        <th></th>
     </tr>
     {% for model in collection %}
       <tr>
@@ -14,7 +16,13 @@
         <td>{{model|attr(field_name)}}</td>
       {% endfor %}
         <td>
-          <a href="/TABLE/{{model.id}}/edit">edit</a>
+          <a href="{% url 'TABLE.edit_page' id=model.id %}">edit</a>
+        </td>
+        <td>
+          <a href="{% url 'TABLE.get' id=model.id %}">show</a>
+        </td>
+        <td>
+          {% include 'TABLE/delete.html' %}
         </td>
       </tr>
     {% endfor %}

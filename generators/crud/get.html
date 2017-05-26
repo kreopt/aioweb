@@ -9,6 +9,9 @@
           {{model|attr(field_name)}}
         </li>
       {% endfor %}
-  <ul>
+  </ul>
+  <div> <a href="{% url 'TABLE.edit_page' id=model.id %}">edit</a> </div>
+  <div> <a href="{% url 'TABLE.index' %}">list</a> </div>
+  <div> {% include 'TABLE/delete.html' %} </div>
 {% endblock %}
 

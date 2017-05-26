@@ -2,6 +2,8 @@
 {% block content %}
   <h1>Editing MODEL #{{model.id}}</h1>
   {% include 'TABLE/form.html' %}
+  <div> <a href="{% url 'TABLE.get' id=model.id %}">show</a> </div>
+  <div> <a href="{% url 'TABLE.index' %}">list</a> </div>
 {% endblock %}
 
 

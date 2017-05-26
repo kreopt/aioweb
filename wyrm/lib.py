@@ -55,21 +55,18 @@ def init_orator(settings):
     Model.set_connection_resolver(DatabaseManager(dbconfig))
 
 
-answer = None
 
 
 def always_say_yes():
-    global answer
-    answer = 'y'
+    os.environ["WYRM_ANSWER"] = "y"
 
 
 def always_say_no():
-    global answer
-    answer = 'n'
+    os.environ["WYRM_ANSWER"] = "n"
 
 
 def ask(question, answers=["y", "n"]):
-    global answer
+    answer = os.getenv("WYRM_ANSWER", None)
     while True:
         print(question + " [" + ",".join(answers) + "]")
         rc = answer if answer and answer in answers else sys.stdin.readline().strip().lower()

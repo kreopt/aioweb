@@ -70,7 +70,7 @@ def execute(argv, argv0, engine):
                     'FORM_FIELDS': form_fields,
                  }
     os.makedirs(views_dir, exist_ok=True)
-    for view_name in ["index.html", "get.html", "form.html", "edit_page.html", "add.html", "add_page.html", "edit.html"]:
+    for view_name in ["index.html", "get.html", "form.html", "edit_page.html", "add.html", "add_page.html", "edit.html", "delete.html"]:
         view_file = os.path.join(views_dir, view_name)
         print("creating {}...".format(view_file))
         view_code = lib.read_template("crud/{}".format(view_name), settings=settings, replacements=replacements)

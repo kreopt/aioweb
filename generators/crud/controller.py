@@ -36,7 +36,7 @@ class CONTROLLER_CLASS(aioweb.core.Controller):
 
     # @redirect_on_success('index')
     async def delete(self):
-        if self.model.delete(**await self.MODEL_params()):
+        if self.model.delete():
             return web.HTTPFound(self.path_for("index", None))
 
     async def edit_page(self):
