@@ -30,7 +30,7 @@ class AioWebTestCase(unittest.TestCase):
 
     def __del__(self):
         self.loop.close()
-        
+
 
     def refresh_db(self):
         resolver = Model.get_connection_resolver()

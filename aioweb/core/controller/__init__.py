@@ -25,7 +25,8 @@ class Controller(object):
             router=router,
             session=None,
             flash=None,
-            headers=[]
+            headers=[],
+            parameters=None
         )
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
@@ -39,8 +40,10 @@ class Controller(object):
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
                                  self.path_for(action, prefix))
 
-    async def params(self):
-        return (await StrongParameters().parse(self.request)).with_routes(self.request)
+    async def params(self, *args):
+        if self._private.parameters is None:
+            self._private.parameters = (await StrongParameters().parse(self.request)).with_routes(self.request)
+        return self._private.parameters.permit(*args) if args else self._private.parameters
 
     @property
     def session(self):
