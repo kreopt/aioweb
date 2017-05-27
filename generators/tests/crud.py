@@ -79,7 +79,6 @@ class test_CONTROLLER_CLASS(wyrm.base_test.AioWebTestCase):
         rsp= await self.client.request("GET", "/TABLE/{}/edit".format(666))
         controller=self.app.last_controller
         self.assertEqual(rsp.status, 404)
-        self.assertEqual(controller.model.id, self.collection[0].id)
 
     # POST /TABLE/:id
     @unittest_run_loop

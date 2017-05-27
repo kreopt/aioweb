@@ -6,9 +6,13 @@ from app.models.MODEL import MODEL_CLASS
 
 async def set_model(ctrl):
     ctrl.model = MODEL_CLASS.find( (await ctrl.params())["id"])
+    if not ctrl.model:
+        raise web.HTTPNotFound
 
 def new_model(ctrl):
     ctrl.model = MODEL_CLASS()
+    if not ctrl.model:
+        raise web.HTTPNotFound
 
 @before_action(new_model, only=('add', 'add_page'))
 @before_action(set_model, only=('get', 'delete', 'edit_page', 'edit'))
