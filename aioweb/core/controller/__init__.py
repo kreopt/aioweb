@@ -26,7 +26,8 @@ class Controller(object):
             session=None,
             flash=None,
             headers=[],
-            parameters=None
+            parameters=None,
+            query=None
         )
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
@@ -40,10 +41,15 @@ class Controller(object):
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
                                  self.path_for(action, prefix))
 
-    async def params(self, *args):
+    async def params(self, *args, parse_body=True):
         if self._private.parameters is None:
-            self._private.parameters = (await StrongParameters().parse(self.request)).with_routes(self.request)
+            self._private.parameters = (await StrongParameters().parse(self.request, parse_body=parse_body)).with_routes(self.request)
         return self._private.parameters.permit(*args) if args else self._private.parameters
+
+    async def query(self, *args):
+        if self._private.query is None:
+            self._private.query = (await StrongParameters().parse(self.request, parse_body=False)).with_routes(self.request)
+        return self._private.query.permit(*args) if args else self._private.query
 
     @property
     def session(self):

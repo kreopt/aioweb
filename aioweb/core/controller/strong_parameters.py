@@ -5,9 +5,10 @@ class StrongParameters(dict):
     def __init__(self, *args):
         super().__init__(*args)
 
-    async def parse(self, request):
+    async def parse(self, request, parse_body=True):
         self.__parse_multi_dict(request.query)
-        self.__parse_multi_dict(await request.post())
+        if parse_body:
+            self.__parse_multi_dict(await request.post())
         return self
 
     def with_routes(self, request):
@@ -18,12 +19,12 @@ class StrongParameters(dict):
     def permit(self, *args):
         # Examples:
         #   params = {'a': '1', 'b': '2', 'c': '3', 'd': ['4', '5'], 'e': {'f': '6', 'g': '7'} }
-        #   
+        #
         #   params.permit('a', 'b') => {'a': 1, 'b': 2}
         #   params.permit('a', 'b', 'd') => {'a': '1', 'b': '2'}
         #   params.permit(str) => {'a': '1', 'b': '2', c: '3'}
         #   params.permit({'e': ['f']}) => {'e': {'f': '6'}}
-        # 
+        #
         #
         #   params = {  'a': {'1': {'a': '1', 'b': '2', 'c': '3'}, '2': {'a': '4', 'b': '5'}} })
         #
