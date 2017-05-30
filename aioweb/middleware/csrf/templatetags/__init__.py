@@ -6,25 +6,24 @@ import aioweb.middleware.csrf
 
 class CsrfTag(Extension):
     """
-    Implements django's `{% csrf_token %}` tag.
+    Implements `{% csrf_token %}` tag.
     """
     tags = set(['csrf_token'])
 
+
     def parse(self, parser):
+        self.parser = parser
         lineno = parser.stream.expect('name:csrf_token').lineno
-        controller = parser.environment.globals.get('controller')
-        if controller:
-            csrf_token = getattr(controller.request, 'csrf_token', '')
-        else:
-            csrf_token = ''
         call = self.call_method(
             '_csrf_token',
-            [nodes.Const(csrf_token)],  # nodes.Name('csrf_token', 'load', lineno=lineno)
+            [],  # nodes.Name('csrf_token', 'load', lineno=lineno)
             lineno=lineno
         )
         return nodes.Output([nodes.MarkSafe(call)])
 
-    def _csrf_token(self, csrf_token):
+    def _csrf_token(self):
+        controller = self.parser.environment.globals.get('controller')
+        csrf_token = getattr(controller.request, 'csrf_token', '')
         if not csrf_token or csrf_token == 'NOTPROVIDED':
             return ''
         else:
