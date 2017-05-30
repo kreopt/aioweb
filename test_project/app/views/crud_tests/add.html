@@ -1,0 +1,7 @@
+{% extends controller.layout %}
+{% block content %}
+  <h1>Creating crud_test</h1>
+  {% include 'crud_tests/form.html' %}
+{% endblock %}
+<div> <a href="{% url 'crud_tests.index' %}">list</a> </div>
+

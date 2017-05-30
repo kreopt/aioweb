@@ -1,0 +1,9 @@
+{% extends controller.layout %}
+{% block content %}
+  <h1>Editing crud_test #{{model.id}}</h1>
+  {% include 'crud_tests/form.html' %}
+  <div> <a href="{% url 'crud_tests.get' id=model.id %}">show</a> </div>
+  <div> <a href="{% url 'crud_tests.index' %}">list</a> </div>
+{% endblock %}
+
+

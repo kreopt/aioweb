@@ -1,0 +1,32 @@
+{% extends controller.layout %}
+{% block content %}
+  <h1>index</h1>
+  <table>
+    <tr>
+      {% for field_name in fields %}
+        <th>{{field_name}}</th>
+      {% endfor %}
+        <th></th>
+        <th></th>
+        <th></th>
+    </tr>
+    {% for model in collection %}
+      <tr>
+      {% for field_name in fields %}
+        <td>{{model|attr(field_name)}}</td>
+      {% endfor %}
+        <td>
+          <a href="{% url 'crud_tests.edit_page' id=model.id %}">edit</a>
+        </td>
+        <td>
+          <a href="{% url 'crud_tests.get' id=model.id %}">show</a>
+        </td>
+        <td>
+          {% include 'crud_tests/delete.html' %}
+        </td>
+      </tr>
+    {% endfor %}
+  </table>
+  <a href="{{controller.path_for('add_page')}}" >create crud_test</a>
+{% endblock %}
+

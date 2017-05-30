@@ -19,3 +19,4 @@ def setup(router):
         os.path.join(settings.BASE_DIR, 'app/assets'),
     ])
     router.get('strong_parameters#test')
+    router.resource('crud_tests', 'crud_tests')

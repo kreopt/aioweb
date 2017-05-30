@@ -1,0 +1,9 @@
+<form {% if model.id %} action="{% url 'crud_tests.edit' id=model.id %}" method="post" {% else %} action="{% url 'crud_tests.add' %}" method="post" {% endif %}>
+  {% csrf_token %}
+  <div class="field">
+  <label>wtf
+    <input type="text"   name="crud_test[wtf]" {% if model.wtf != None %} value="{{ model.wtf }}" {% endif %}></input>
+  </label>
+</div>
+  <input type="submit" value="{% if model.id %}Save{% else %}Create{% endif %}">
+</form>

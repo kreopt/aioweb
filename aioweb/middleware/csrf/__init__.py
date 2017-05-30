@@ -50,6 +50,7 @@ async def middleware(app, handler):
         if request.get('just_authenticated'):
             set_token(response)
 
+        response.headers['X-Csrf-Token'] = request.csrf_token
         return response
 
     return middleware_handler
