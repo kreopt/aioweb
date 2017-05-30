@@ -7,6 +7,7 @@ aiohttp_session
 aiohttp-devtools
 aiohttp_debugtoolbar
 aiofiles
+cryptography
 passlib
 pytest-asyncio
 pytest-aiohttp
