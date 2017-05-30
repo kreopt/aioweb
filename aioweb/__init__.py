@@ -115,3 +115,66 @@ def run_app(app, *,
         loop.run_until_complete(handler.shutdown(shutdown_timeout))
         loop.run_until_complete(app.cleanup())
     loop.close()
+
+def start_app(app, *,
+              shutdown_timeout=60.0,
+              ssl_context=None,
+              port=None,
+              host="0.0.0.0",
+              socket=None,
+              servers=1,
+              log="log/server.log",
+              log_level="debug",
+              print=print, 
+              backlog=128, 
+              access_log_format=None,
+              access_log=access_logger):
+
+    loop = app.loop
+    app['env'] = os.environ.get('AIOWEB_ENV', 'development')
+    if not port: port = 8000 if not ssl_context  else 8443
+
+    make_handler_kwargs = dict()
+    if access_log_format is not None:
+        make_handler_kwargs['access_log_format'] = access_log_format
+    handler = app.make_handler(access_log=access_log, **make_handler_kwargs)
+
+    loop.run_until_complete(app.startup())
+    if socket:
+        sockets = []
+        if servers == 1:
+            sockets=[socket]
+        else:
+            for i in range(1,servers + 1):
+                sockets.append("{:02d}_{}".format(i, socket))
+        for socket in sockets:
+            try: os.unlink(socket)
+            except: pass
+            srv = loop.run_until_complete(loop.create_unix_server(handler, path=socket,
+                                                                  ssl=ssl_context,
+                                                                  backlog=backlog))
+            os.chmod(socket, 0o664)
+            print("======== Running on unix://{} ========".format(socket))
+        print("\n(Press CTRL+C to quit)")
+    else:
+        srv = loop.run_until_complete(loop.create_server(handler, host,
+                                                         port, ssl=ssl_context,
+                                                         backlog=backlog))
+
+        scheme = 'https' if ssl_context else 'http'
+        url = URL('{}://localhost'.format(scheme))
+        url = url.with_host(host).with_port(port)
+        print("======== Running on {} ========\n"
+              "(Press CTRL+C to quit)".format(url))
+
+    try:
+        loop.run_forever()
+    except KeyboardInterrupt:  # pragma: no cover
+        pass
+    finally:
+        srv.close()
+        loop.run_until_complete(srv.wait_closed())
+        loop.run_until_complete(handler.shutdown(shutdown_timeout))
+        loop.run_until_complete(app.shutdown())
+        loop.run_until_complete(app.cleanup())
+    loop.close()
