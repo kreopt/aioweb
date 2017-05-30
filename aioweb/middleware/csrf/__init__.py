@@ -1,4 +1,5 @@
 from aiohttp import web
+from aiohttp_session import get_session, SESSION_KEY as SESSION_COOKIE_NAME
 
 from aioweb.middleware.csrf.templatetags import CsrfTag
 from aioweb.util import awaitable
@@ -20,7 +21,6 @@ CSRF_ALLOWED_CHARS = string.ascii_letters + string.digits
 def generate_csrf_token():
     return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_LENGTH)])
 
-
 async def get_token(request):
     """
     Returns the CSRF token required for a POST form. The token is an
@@ -30,7 +30,6 @@ async def get_token(request):
     if 'csrf_token' in session and session['csrf_token']:
         return session['csrf_token']
     return await set_token(request)
-
 
 async def set_token(request):
     session = await get_session(request)
@@ -71,17 +70,17 @@ async def pre_dispatch(request, controller, actionName):
         if not getattr(action, 'csrf_disabled', False):
             check_ok = False
             token = await get_token(request)
-
             if token:
                 # TODO: check referer
 
                 data = await request.post()
-                requesttoken = sanitize_token(data.get(CSRF_FIELD_NAME, ''))
-                if requesttoken and compare_salted_tokens(requesttoken, token):
+                requesttoken = data.get(CSRF_FIELD_NAME, '')
+                if requesttoken == token:
                     check_ok = True
                 else:
                     reason = REASON_BAD_TOKEN
             else:
                 reason = REASON_NO_CSRF_COOKIE
+
     if not check_ok:
         raise web.HTTPForbidden(reason=reason)
