@@ -103,6 +103,7 @@ def dirs(settings, app=None, format=[], check=False):
     ret["seeds"] = os.path.join(base_dir, "db/seeds")
     ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["tests_controllers"] = os.path.join(base_dir, "tests/controllers") if not app else None
+    ret["tests_middleware"]  = os.path.join(base_dir, "tests/middlewares")
     if check:
         for k in ret.keys():
             if ret[k] and not os.path.exists(ret[k]):

@@ -13,7 +13,7 @@ aliases = ['m']
 
 
 def execute(argv, argv0, engine):
-    import lib
+    import lib, inflection, re
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
 
@@ -37,7 +37,7 @@ def execute(argv, argv0, engine):
             os.unlink(model_file)
 
     if rewrite:
-        os.system("orator make:model {} -p app/models".format(argv[0].capitalize()))
+        os.system("orator make:model {} -p app/models".format(inflection.singularize(table).capitalize()))
 
     rewrite = True
     try:
@@ -61,8 +61,17 @@ def execute(argv, argv0, engine):
                              ["table.{}('{}').nullable()".format(tp, name) for tp, name in additional_fields],
                              in_end=True)
         print("patching " + model_file)
+        with open(model_file, "r") as fr:
+            content = fr.read()
+            wrong_class_name = re.search(r"class ([_a-zA-Z0-9]+)", content).group(1)
+            right_class_name = inflection.camelize(wrong_class_name.lower())
+            print(wrong_class_name)
+            print(right_class_name)
+            with open(model_file, "w") as f:
+                f.write(re.sub(wrong_class_name, right_class_name, content))
+            
+
         fillable = "__fillable__ = [{}]".format(", ".join( ['"{}"'.format(name) for tp, name in additional_fields] ))
-        print(fillable)
         lib.insert_in_python(model_file, ["class"],
                              [fillable] + ["# {}{} - {}".format(name, (25 - len(name)) * ' ', tp) for tp, name in additional_fields],
                              ignore_pass=True)
