@@ -6,7 +6,7 @@ brief = "start the aioweb server"
 aliases = ["s", "runserver"]
 
 def usage(argv0):
-    print("Usage: {} s [-d] [-p|--port N] [-c|--config YAML] [--pid PID] [-s|--socket SOCKET] [-S|--servers N]".format(argv0))
+    print("Usage: {} s [-d] [-p|--port N] [-h|--host HOST] [-c|--config YAML] [--pid PID] [-s|--socket SOCKET] [-S|--servers N]".format(argv0))
     sys.exit(1)
 
 def execute(argv, argv0, engine):
