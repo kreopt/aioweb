@@ -48,8 +48,8 @@ def unsalt_cipher_token(token):
     return secret
 
 
-def make_csrf_token(secret=None):
-    return _salt_cipher_secret(secret if secret else _get_new_csrf_string())
+def make_csrf_token(secret):
+    return _salt_cipher_secret(secret)
 
 
 def sanitize_token(token):

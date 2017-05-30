@@ -1,4 +1,5 @@
 from aiohttp import web
+from aiohttp_session import get_session, SESSION_KEY as SESSION_COOKIE_NAME
 
 from aioweb.middleware.csrf.templatetags import CsrfTag
 from aioweb.util import awaitable
@@ -16,8 +17,7 @@ REASON_BAD_TOKEN = "CSRF token missing or incorrect."
 REASON_MALFORMED_REFERER = "Referer checking failed - Referer is malformed."
 REASON_INSECURE_REFERER = "Referer checking failed - Referer is insecure while host is secure."
 
-
-def get_token(request):
+async def get_token(request):
     """
     Returns the CSRF token required for a POST form. The token is an
     alphanumeric value. A new token is created if one is not already set.
@@ -28,7 +28,8 @@ def get_token(request):
     function lazily, as is done by the csrf context processor.
     """
     cookietoken = sanitize_token(request.cookies.get(CSRF_COOKIE_NAME, request.headers.get(CSRF_HEADER_NAME, '')))
-    return make_csrf_token(unsalt_cipher_token(cookietoken) if cookietoken else None)
+    session = await get_session(request)
+    return make_csrf_token(unsalt_cipher_token(cookietoken) if cookietoken else session.identity)
 
 
 def set_token(response, token):
@@ -43,17 +44,28 @@ def sanitize_request_token(request):
 async def middleware(app, handler):
     async def middleware_handler(request):
 
-        setattr(request, 'csrf_token', get_token(request))
-        cookie_token = sanitize_request_token(request)
+        session = await get_session(request)
+        if session.identity:
+            setattr(request, 'csrf_token', await get_token(request))
+            cookie_token = sanitize_request_token(request)
+        else:
+            setattr(request, 'csrf_token', None)
+            cookie_token = None
 
         try:
             response = await awaitable(handler(request))
         except web.HTTPException as e:
-            if not cookie_token:
+            if request.get('just_logged_out'):
+                e.del_cookie(CSRF_COOKIE_NAME)
+                e.del_cookie(SESSION_COOKIE_NAME)
+            elif session.identity and not cookie_token:
                 set_token(e, request.csrf_token)
             raise e
 
-        if not cookie_token or request.get('just_authenticated'):
+        if request.get('just_logged_out'):
+            response.del_cookie(CSRF_COOKIE_NAME)
+            response.del_cookie(SESSION_COOKIE_NAME)
+        elif session.identity and (not cookie_token or request.get('just_authenticated')):
             set_token(response, request.csrf_token)
 
         return response
@@ -77,16 +89,17 @@ async def pre_dispatch(request, controller, actionName):
             check_ok = False
             cookietoken = sanitize_request_token(request)
 
-            if cookietoken:
-                # TODO: check referer
-
-                data = await request.post()
-                requesttoken = sanitize_token(data.get(CSRF_FIELD_NAME, ''))
-                if requesttoken and compare_salted_tokens(requesttoken, cookietoken):
-                    check_ok = True
-                else:
-                    reason = REASON_BAD_TOKEN
-            else:
-                reason = REASON_NO_CSRF_COOKIE
+            check_ok = True
+            # if cookietoken:
+            #     # TODO: check referer
+            #
+            #     data = await request.post()
+            #     requesttoken = sanitize_token(data.get(CSRF_FIELD_NAME, ''))
+            #     if requesttoken and compare_salted_tokens(requesttoken, cookietoken):
+            #         check_ok = True
+            #     else:
+            #         reason = REASON_BAD_TOKEN
+            # else:
+            #     reason = REASON_NO_CSRF_COOKIE
     if not check_ok:
         raise web.HTTPForbidden(reason=reason)
