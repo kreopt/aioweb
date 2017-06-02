@@ -48,6 +48,7 @@ class StaticMultidirResource(StaticResource):
     async def _handle(self, request):
         filename = unquote(request.match_info['filename'])
         filepath = None
+        ret = None
         for directory in self._directories:
             try:
                 filepath = directory.joinpath(filename).resolve()
@@ -60,16 +61,16 @@ class StaticMultidirResource(StaticResource):
                 # perm error or other kind!
                 request.app.logger.exception(error)
 
-        if not filepath:
-            raise HTTPNotFound()
+            if not filepath:
+                continue
 
-        # on opening a dir, load it's contents if allowed
-        if filepath.is_file():
-            ret = FileResponse(filepath, chunk_size=self._chunk_size)
-        else:
-            raise HTTPNotFound
-
-        return ret
+            # on opening a dir, load it's contents if allowed
+            if filepath.is_file():
+                ret = FileResponse(filepath, chunk_size=self._chunk_size)
+                break
+            else:
+                continue
+        return ret if ret else HTTPNotFound
 
     def __repr__(self):
         name = "'" + self.name + "'" if self.name is not None else ""
