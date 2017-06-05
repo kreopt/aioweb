@@ -47,7 +47,7 @@ def execute(argv, argv0, engine):
     else:
         agree = input("Do you want to overwrite your assets dir? [y/n] ")
     if agree.lower() == 'y':
-        DEST_DIR = os.path.join(settings.BASE_DIR, 'public', 'assets')
+        DEST_DIR = os.path.join(settings.BASE_DIR, 'public')
         if os.path.exists(DEST_DIR):
             shutil.rmtree(DEST_DIR)
         else:
