@@ -70,5 +70,11 @@ const Template = {
             }
         }
         return clone;
+    },
+    render_to_string: function (template, data) {
+        let frag = Template.render(template, data);
+        let el = document.createElement('div');
+        el.appendChild(frag);
+        return el.innerHTML;
     }
 };
