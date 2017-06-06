@@ -32,14 +32,14 @@ class Controller(object):
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
-    def path_for(self, action, prefix=None):
-        return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action)
+    def path_for(self, action, prefix=None, params={}):
+        return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action, **params)
 
-    def url_for(self, action, prefix=None):
+    def url_for(self, action, prefix=None, params={}):
         return "%s://%s%s%s" % (self.request.url.scheme,
                                  self.request.url.host,
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
-                                 self.path_for(action, prefix))
+                                 self.path_for(action, prefix, params=params))
 
     async def params(self, *args, parse_body=True):
         if self._private.parameters is None:
