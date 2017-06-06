@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp_session import get_session, SESSION_KEY as SESSION_COOKIE_NAME
 
-from aioweb.middleware.csrf.templatetags import CsrfTag
+from aioweb.middleware.csrf.templatetags import CsrfTag, CsrfRawTag
 from aioweb.util import awaitable
 from aioweb.modules.template.backends.jinja2 import APP_KEY as JINJA_APP_KEY
 import random, string
@@ -58,6 +58,7 @@ async def middleware(app, handler):
 
 def setup(app):
     app[JINJA_APP_KEY].add_extension(CsrfTag)
+    app[JINJA_APP_KEY].add_extension(CsrfRawTag)
 
 
 async def pre_dispatch(request, controller, actionName):
