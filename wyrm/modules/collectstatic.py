@@ -27,6 +27,7 @@ def recursive_overwrite(src, dest, ignore=None):
                                     os.path.join(dest, f),
                                     ignore)
     else:
+        print(src)
         shutil.copyfile(src, dest)
 
 
@@ -40,7 +41,7 @@ def execute(argv, argv0, engine):
     # Initialize Orator ORM
 
     parser = OptionParser()
-    parser.add_option("--silent", help="ask confirmation before collecting", action="store_true", dest="silent")
+    parser.add_option("--no-input", help="ask confirmation before collecting", action="store_true", dest="silent")
     (options, args) = parser.parse_args()
     if options.silent:
         agree = 'y'
