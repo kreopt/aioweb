@@ -7,7 +7,8 @@ const Template = {
             let child = node.childNodes[i];
             // Template.interpolateRecursive(child, variable, value);
             if (child.nodeType == Node.ELEMENT_NODE) {
-                for (let attr of child.attributes) {
+                for (let j=0; j<child.attributes.length; ++j) {
+                    let attr = child.attributes[j];
                     child.setAttribute(attr.name, Template.interpolateVar(attr.textContent, variable, value))
                 }
             }
