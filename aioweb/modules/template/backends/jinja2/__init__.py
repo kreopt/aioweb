@@ -21,7 +21,7 @@ async def setup(app):
             app_loaders.append(jinja2.PackageLoader(app_name, "app/views"))
         except ImportError as e:
             pass
-    aiohttp_jinja2.setup(
+    env = aiohttp_jinja2.setup(
         app,
         loader=jinja2.ChoiceLoader(app_loaders),
         context_processors=procs,
@@ -33,3 +33,5 @@ async def setup(app):
             DjangoNow,
             DjangoTrans
         ])
+
+    env.globals['settings'] = settings
