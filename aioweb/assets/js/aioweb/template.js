@@ -9,7 +9,7 @@ const Template = {
             if (child.nodeType == Node.ELEMENT_NODE) {
                 for (let j=0; j<child.attributes.length; ++j) {
                     let attr = child.attributes[j];
-                    child.setAttribute(attr.name, Template.interpolateVar(attr.textContent, variable, value))
+                    child.setAttribute(attr.name, Template.interpolateVar(attr.value, variable, value))
                 }
             }
 

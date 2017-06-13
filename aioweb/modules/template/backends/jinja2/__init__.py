@@ -1,7 +1,11 @@
+import importlib
 import os
+import traceback
 
 import aiohttp_jinja2
 import jinja2
+from aioweb.util import awaitable
+
 from aioweb.conf import settings
 
 from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans, DjangoNow
@@ -35,3 +39,11 @@ async def setup(app):
         ])
 
     env.globals['settings'] = settings
+
+    try:
+        mod = importlib.import_module("app")
+        setup = getattr(mod, 'setup_template')
+        if setup:
+            await awaitable(setup(env))
+    except (ImportError, AttributeError) as e:
+        traceback.print_exc()
