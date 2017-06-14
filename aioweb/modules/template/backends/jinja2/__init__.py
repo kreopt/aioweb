@@ -43,7 +43,6 @@ async def setup(app):
     try:
         mod = importlib.import_module("app")
         setup = getattr(mod, 'setup_template')
-        if setup:
-            await awaitable(setup(env))
+        await awaitable(setup(env))
     except (ImportError, AttributeError) as e:
-        traceback.print_exc()
+        pass
