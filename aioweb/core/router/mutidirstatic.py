@@ -26,7 +26,8 @@ class StaticMultidirResource(StaticResource):
                     raise ValueError('Not a directory')
                 newdirs.append(directory)
             except (FileNotFoundError, ValueError) as error:
-                web_logger.warn("No directory exists at '{}'".format(directory))
+                #web_logger.warn("No directory exists at '{}'".format(directory))
+                pass
                 # raise ValueError(
                 #     "No directory exists at '{}'".format(directory)) from error
         self._directories = newdirs

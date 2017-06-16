@@ -36,6 +36,16 @@ class Application(AioApp):
         await setup_middlewares(self)
         router.setup_routes(self)
 
+    async def shutdown(self):
+        for mod_name in settings.MODULES:
+            try:
+                mod = importlib.import_module(".modules.%s" % mod_name, __name__)
+                shutdown = getattr(mod, 'shutdown')
+                if shutdown:
+                    await shutdown(self)
+            except (ImportError, AttributeError) as e:
+                pass
+
     def has_module(self, module):
         return module in self.modules
 

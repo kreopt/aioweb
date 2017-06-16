@@ -1,4 +1,4 @@
-const Template = {
+export const Template = {
     interpolateVar(string, variable, value) {
         return string.replace(new RegExp(`([^$])?\\$\{${variable}\}`, 'g'), `$1${value}`)
     },

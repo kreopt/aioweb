@@ -1,4 +1,4 @@
-function asElement(element) {
+export function asElement(element) {
     if (element instanceof HTMLElement) {
         return element;
     } else if (typeof element === typeof '') {
@@ -6,7 +6,7 @@ function asElement(element) {
     }
     throw new TypeError("Element should be instance of HTMLElement or string");
 }
-function asElements(element, parent=document) {
+export function asElements(element, parent=document) {
     if (typeof element === typeof '') {
         return parent.querySelectorAll(element);
     } else {
@@ -14,7 +14,7 @@ function asElements(element, parent=document) {
     }
 }
 
-function inViewport(el) {
+export function inViewport(el) {
 
     let r, html;
     if (!el || 1 !== el.nodeType) {

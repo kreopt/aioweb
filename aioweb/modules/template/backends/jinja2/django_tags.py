@@ -64,8 +64,8 @@ class DjangoStatic(Extension):
     def _static(self, path):
         app = self.environment.globals['app']
         tail = ''
-        if app['env'] == 'development':
-            tail = '?%s' % random.randint(0, 999999)
+        # if app['env'] == 'development':
+        #     tail = '?%s' % random.randint(0, 999999)
         return "%s%s" % (urljoin(settings.STATIC_URL, path), tail)
 
     def parse(self, parser):

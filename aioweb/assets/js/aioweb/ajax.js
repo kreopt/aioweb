@@ -1,4 +1,4 @@
-class Ajax {
+export class Ajax {
     static async submitForm(form, data='', ajax_header = true) {
         if (!data) {
             data = new FormData(form);
