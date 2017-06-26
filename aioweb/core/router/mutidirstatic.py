@@ -68,10 +68,14 @@ class StaticMultidirResource(StaticResource):
             # on opening a dir, load it's contents if allowed
             if filepath.is_file():
                 ret = FileResponse(filepath, chunk_size=self._chunk_size)
+                if request.app['ENV'] == 'development':
+                    ret.headers['Cache-control'] = 'no-cache'
                 break
             else:
                 continue
-        return ret if ret else HTTPNotFound
+        if not ret:
+            raise HTTPNotFound()
+        return ret
 
     def __repr__(self):
         name = "'" + self.name + "'" if self.name is not None else ""

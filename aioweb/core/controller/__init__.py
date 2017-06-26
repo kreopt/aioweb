@@ -109,9 +109,12 @@ class Controller(object):
 
         try:
             res = await awaitable(action())
-        except Exception as e:
+        except web.HTTPException as e:
             self._private.flash.sync()
             raise e
+        except Exception as e:
+            self._private.flash.sync()
+            raise web.HTTPInternalServerError()
 
         if isinstance(res, web.Response):
             self._private.flash.sync()
