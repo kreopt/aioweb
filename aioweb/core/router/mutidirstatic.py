@@ -68,7 +68,7 @@ class StaticMultidirResource(StaticResource):
             # on opening a dir, load it's contents if allowed
             if filepath.is_file():
                 ret = FileResponse(filepath, chunk_size=self._chunk_size)
-                if request.app['ENV'] == 'development':
+                if request.app['env'] == 'development':
                     ret.headers['Cache-control'] = 'no-cache'
                 break
             else:
