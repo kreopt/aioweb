@@ -129,7 +129,13 @@ class Controller(object):
         if accept.startswith('application/json'):
             response = web.json_response(res)
         else:
-            response = self.render(res)
+            try:
+                response = self.render(res)
+            except web.HTTPInternalServerError as e:
+                if self.request.is_ajax():
+                    raise web.HTTPNotImplemented()
+                else:
+                    raise e
 
         # if self._private.headers:
         #     for header in self._private.headers:
