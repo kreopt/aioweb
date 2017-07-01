@@ -91,7 +91,7 @@ class Controller(object):
 
         cleaned_entries = []
         for entry in accept_entries:
-            cleaned_entry = entry.split(';')[0]
+            cleaned_entry = entry.split(';')[0].strip()
             mime, subtype = cleaned_entry.split('/')
             if mime == '*':
                 cleaned_entry = self.__class__.DEFAULT_MIME
