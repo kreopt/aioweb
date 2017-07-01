@@ -1,18 +1,18 @@
 import os
 
 from aiohttp import web
-from aiohttp_jinja2 import APP_KEY
 from aiohttp_session import get_session
 
 from aioweb.core.controller.decorators import CtlDecoratorDescriptor
+from aioweb.core.controller.serializers import make_serializer
 from aioweb.core.controller.strong_parameters import StrongParameters
-from aioweb.modules import template
 from aioweb.modules.session.flash import Flash
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
 
 
 class Controller(object):
     EMPTY_LAYOUT = 'no_layout.html'
+    DEFAULT_MIME = 'text/html'
 
     def __init__(self, request, router):
         self.app = request.app
@@ -79,11 +79,28 @@ class Controller(object):
     def template(self, view):
         self._private.template = view
 
-    def render(self, data):
-        self.request.app[APP_KEY].globals['controller'] = self
-        return template.render(self._private.template, self.request, data)
-
     async def _dispatch(self, action, actionName):
+
+        accept = self.request.headers.get('accept', self.__class__.DEFAULT_MIME)
+        accept_entries = accept.split(',')
+
+        allowed_content_type = getattr(action, 'content_type', {
+            CtlDecoratorDescriptor.EXCEPT: tuple(),
+            CtlDecoratorDescriptor.ONLY: tuple()
+        })
+
+        cleaned_entries = []
+        for entry in accept_entries:
+            cleaned_entry = entry.split(';')[0]
+            mime, subtype = cleaned_entry.split('/')
+            if mime == '*':
+                cleaned_entry = self.__class__.DEFAULT_MIME
+            if cleaned_entry not in allowed_content_type[CtlDecoratorDescriptor.EXCEPT] and \
+                    (cleaned_entry in allowed_content_type[CtlDecoratorDescriptor.ONLY] or
+                             len(allowed_content_type[CtlDecoratorDescriptor.ONLY]) == 0):
+                cleaned_entries.append(cleaned_entry)
+
+        serializer = make_serializer(self, cleaned_entries)
 
         self._private.layout = getattr(self.__class__,
                                        'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
@@ -92,6 +109,7 @@ class Controller(object):
 
         self._private.session = await get_session(self.request)
         self._private.flash = Flash(self._private.session)
+
 
         # TODO: something better
         beforeActionRes = {}
@@ -124,22 +142,7 @@ class Controller(object):
             res = {}
         res.update(beforeActionRes)
 
-        accept = self.request.headers['accept']
-
-        if accept.startswith('application/json'):
-            response = web.json_response(res)
-        else:
-            try:
-                response = self.render(res)
-            except web.HTTPInternalServerError as e:
-                if self.request.is_ajax():
-                    raise web.HTTPNotImplemented()
-                else:
-                    raise e
-
-        # if self._private.headers:
-        #     for header in self._private.headers:
-        #         response.headers[header] = self._private.headers[header]
+        response = serializer.serialize(res)
 
         try:
             headers = getattr(self.__class__, '__HEADERS')

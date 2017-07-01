@@ -123,3 +123,15 @@ def redirect_on_success(action_name, prefix=None, params=None):
         return decorated
 
     return decorator
+
+##
+## Content negotiation
+##
+def content_type(only=tuple(), exclude=tuple()):
+    def decorator(fn):
+        setattr(fn, 'content_type', {
+            CtlDecoratorDescriptor.EXCEPT: exclude,
+            CtlDecoratorDescriptor.ONLY: only
+        })
+        return fn
+    return decorator
