@@ -9,8 +9,9 @@ from aioweb.modules import template
 class BaseSerializer(object):
     CONTENT_TYPES = ["*"]
 
-    def __init__(self, controller):
+    def __init__(self, controller, shouldHandle=True):
         self.controller = controller
+        self.shouldHandle = shouldHandle
 
     @classmethod
     def can_handle(cls, contentType):
@@ -18,6 +19,10 @@ class BaseSerializer(object):
             if re.match(type, contentType):
                 return True
         return False
+
+    def raiseIfNotAllowed(self):
+        if not self.shouldHandle:
+            raise web.HTTPNotAcceptable(body='');
 
     def serialize(self, data):
         raise web.HTTPNotAcceptable(body='') # TODO respond with all acceptable content-types
@@ -45,7 +50,7 @@ class TemplateSerializer(BaseSerializer):
 
 
 SERIALIZERS = [
-    TemplateSerializer, JsonSerializer, BaseSerializer
+    TemplateSerializer, JsonSerializer
 ]
 
 
@@ -54,4 +59,4 @@ def make_serializer(controller, acceptEntries):
         for entry in acceptEntries:
             if serializer.can_handle(entry):
                 return serializer(controller)
-    return BaseSerializer(controller)
+    return BaseSerializer(controller, False)

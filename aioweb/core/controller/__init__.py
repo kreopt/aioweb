@@ -102,6 +102,9 @@ class Controller(object):
 
         serializer = make_serializer(self, cleaned_entries)
 
+        serializer.raiseIfNotAllowed()
+
+
         self._private.layout = getattr(self.__class__,
                                        'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
         self._private.template = os.path.join(self._private.search_path, self._private.controller,
