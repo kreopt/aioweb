@@ -1,7 +1,7 @@
 from aiohttp import web
 from aiohttp_session import get_session, SESSION_KEY as SESSION_COOKIE_NAME
 
-from aioweb.middleware.csrf.templatetags import CsrfTag
+from aioweb.middleware.csrf.templatetags import CsrfTag, CsrfRawTag
 from aioweb.util import awaitable
 from aioweb.modules.template.backends.jinja2 import APP_KEY as JINJA_APP_KEY
 import random, string
@@ -9,6 +9,7 @@ from aiohttp_session import get_session
 
 
 CSRF_FIELD_NAME = 'csrftoken'
+CSRF_SESSION_NAME = 'csrf_token'
 CSRF_HEADER_NAME = 'X-Csrf-Token'
 CSRF_COOKIE_NAME = 'Csrf-Token'
 
@@ -27,14 +28,14 @@ async def get_token(request):
     alphanumeric value. A new token is created if one is not already set.
     """
     session = await get_session(request)
-    if 'csrf_token' in session and session['csrf_token']:
-        return session['csrf_token']
+    if CSRF_SESSION_NAME in session and session[CSRF_SESSION_NAME]:
+        return session[CSRF_SESSION_NAME]
     return await set_token(request)
 
 async def set_token(request):
     session = await get_session(request)
-    session['csrf_token'] = generate_csrf_token()
-    return session['csrf_token']
+    session[CSRF_SESSION_NAME] = generate_csrf_token()
+    return session[CSRF_SESSION_NAME]
 
 
 async def middleware(app, handler):
@@ -47,10 +48,6 @@ async def middleware(app, handler):
         except web.HTTPException as e:
             raise e
 
-        if request.get('just_authenticated'):
-            set_token(response)
-
-        response.headers['X-Csrf-Token'] = request.csrf_token
         return response
 
     return middleware_handler
@@ -58,6 +55,7 @@ async def middleware(app, handler):
 
 def setup(app):
     app[JINJA_APP_KEY].add_extension(CsrfTag)
+    app[JINJA_APP_KEY].add_extension(CsrfRawTag)
 
 
 async def pre_dispatch(request, controller, actionName):
@@ -75,7 +73,7 @@ async def pre_dispatch(request, controller, actionName):
                 # TODO: check referer
 
                 data = await request.post()
-                requesttoken = data.get(CSRF_FIELD_NAME, '')
+                requesttoken = data.get(CSRF_FIELD_NAME, request.headers.get(CSRF_HEADER_NAME, ''))
                 if requesttoken == token:
                     check_ok = True
                 else:

@@ -26,7 +26,8 @@ class StaticMultidirResource(StaticResource):
                     raise ValueError('Not a directory')
                 newdirs.append(directory)
             except (FileNotFoundError, ValueError) as error:
-                web_logger.warn("No directory exists at '{}'".format(directory))
+                #web_logger.warn("No directory exists at '{}'".format(directory))
+                pass
                 # raise ValueError(
                 #     "No directory exists at '{}'".format(directory)) from error
         self._directories = newdirs
@@ -48,6 +49,7 @@ class StaticMultidirResource(StaticResource):
     async def _handle(self, request):
         filename = unquote(request.match_info['filename'])
         filepath = None
+        ret = None
         for directory in self._directories:
             try:
                 filepath = directory.joinpath(filename).resolve()
@@ -60,15 +62,19 @@ class StaticMultidirResource(StaticResource):
                 # perm error or other kind!
                 request.app.logger.exception(error)
 
-        if not filepath:
+            if not filepath:
+                continue
+
+            # on opening a dir, load it's contents if allowed
+            if filepath.is_file():
+                ret = FileResponse(filepath, chunk_size=self._chunk_size)
+                if request.app['env'] == 'development':
+                    ret.headers['Cache-control'] = 'no-cache'
+                break
+            else:
+                continue
+        if not ret:
             raise HTTPNotFound()
-
-        # on opening a dir, load it's contents if allowed
-        if filepath.is_file():
-            ret = FileResponse(filepath, chunk_size=self._chunk_size)
-        else:
-            raise HTTPNotFound
-
         return ret
 
     def __repr__(self):

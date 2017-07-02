@@ -1,7 +1,11 @@
+import importlib
 import os
+import traceback
 
 import aiohttp_jinja2
 import jinja2
+from aioweb.util import awaitable
+
 from aioweb.conf import settings
 
 from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans, DjangoNow
@@ -21,7 +25,7 @@ async def setup(app):
             app_loaders.append(jinja2.PackageLoader(app_name, "app/views"))
         except ImportError as e:
             pass
-    aiohttp_jinja2.setup(
+    env = aiohttp_jinja2.setup(
         app,
         loader=jinja2.ChoiceLoader(app_loaders),
         context_processors=procs,
@@ -33,3 +37,12 @@ async def setup(app):
             DjangoNow,
             DjangoTrans
         ])
+
+    env.globals['settings'] = settings
+
+    try:
+        mod = importlib.import_module("app")
+        setup = getattr(mod, 'setup_template')
+        await awaitable(setup(env))
+    except (ImportError, AttributeError) as e:
+        pass

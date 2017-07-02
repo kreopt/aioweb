@@ -1,18 +1,18 @@
 import os
 
 from aiohttp import web
-from aiohttp_jinja2 import APP_KEY
 from aiohttp_session import get_session
 
 from aioweb.core.controller.decorators import CtlDecoratorDescriptor
+from aioweb.core.controller.serializers import make_serializer
 from aioweb.core.controller.strong_parameters import StrongParameters
-from aioweb.modules import template
 from aioweb.modules.session.flash import Flash
 from aioweb.util import extract_name_from_class, awaitable, PrivateData
 
 
 class Controller(object):
     EMPTY_LAYOUT = 'no_layout.html'
+    DEFAULT_MIME = 'text/html'
 
     def __init__(self, request, router):
         self.app = request.app
@@ -32,14 +32,14 @@ class Controller(object):
         if not hasattr(self.__class__, 'LAYOUT'):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
-    def path_for(self, action, prefix=None):
-        return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action)
+    def path_for(self, action, prefix=None, params={}):
+        return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action, **params)
 
-    def url_for(self, action, prefix=None):
+    def url_for(self, action, prefix=None, params={}):
         return "%s://%s%s%s" % (self.request.url.scheme,
                                  self.request.url.host,
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
-                                 self.path_for(action, prefix))
+                                 self.path_for(action, prefix, params=params))
 
     async def params(self, *args, parse_body=True):
         if self._private.parameters is None:
@@ -79,11 +79,31 @@ class Controller(object):
     def template(self, view):
         self._private.template = view
 
-    def render(self, data):
-        self.request.app[APP_KEY].globals['controller'] = self
-        return template.render(self._private.template, self.request, data)
-
     async def _dispatch(self, action, actionName):
+
+        accept = self.request.headers.get('accept', self.__class__.DEFAULT_MIME)
+        accept_entries = accept.split(',')
+
+        allowed_content_type = getattr(action, 'content_type', {
+            CtlDecoratorDescriptor.EXCEPT: tuple(),
+            CtlDecoratorDescriptor.ONLY: tuple()
+        })
+
+        cleaned_entries = []
+        for entry in accept_entries:
+            cleaned_entry = entry.split(';')[0].strip()
+            mime, subtype = cleaned_entry.split('/')
+            if mime == '*':
+                cleaned_entry = self.__class__.DEFAULT_MIME
+            if cleaned_entry not in allowed_content_type[CtlDecoratorDescriptor.EXCEPT] and \
+                    (cleaned_entry in allowed_content_type[CtlDecoratorDescriptor.ONLY] or
+                             len(allowed_content_type[CtlDecoratorDescriptor.ONLY]) == 0):
+                cleaned_entries.append(cleaned_entry)
+
+        serializer = make_serializer(self, cleaned_entries)
+
+        serializer.raiseIfNotAllowed()
+
 
         self._private.layout = getattr(self.__class__,
                                        'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
@@ -92,6 +112,7 @@ class Controller(object):
 
         self._private.session = await get_session(self.request)
         self._private.flash = Flash(self._private.session)
+
 
         # TODO: something better
         beforeActionRes = {}
@@ -109,9 +130,12 @@ class Controller(object):
 
         try:
             res = await awaitable(action())
-        except Exception as e:
+        except web.HTTPException as e:
             self._private.flash.sync()
             raise e
+        except Exception as e:
+            self._private.flash.sync()
+            raise web.HTTPInternalServerError()
 
         if isinstance(res, web.Response):
             self._private.flash.sync()
@@ -121,16 +145,7 @@ class Controller(object):
             res = {}
         res.update(beforeActionRes)
 
-        accept = self.request.headers['accept']
-
-        if accept.startswith('application/json'):
-            response = web.json_response(res)
-        else:
-            response = self.render(res)
-
-        # if self._private.headers:
-        #     for header in self._private.headers:
-        #         response.headers[header] = self._private.headers[header]
+        response = serializer.serialize(res)
 
         try:
             headers = getattr(self.__class__, '__HEADERS')

@@ -36,6 +36,16 @@ class Application(AioApp):
         await setup_middlewares(self)
         router.setup_routes(self)
 
+    async def shutdown(self):
+        for mod_name in settings.MODULES:
+            try:
+                mod = importlib.import_module(".modules.%s" % mod_name, __name__)
+                shutdown = getattr(mod, 'shutdown')
+                if shutdown:
+                    await shutdown(self)
+            except (ImportError, AttributeError) as e:
+                pass
+
     def has_module(self, module):
         return module in self.modules
 
@@ -53,7 +63,7 @@ class Application(AioApp):
 def run_app(app, *,
             shutdown_timeout=60.0, ssl_context=None,
             print=print, backlog=128, access_log_format=None,
-            access_log=access_logger):
+            access_log=access_logger, servers=1):
     """Run an app locally"""
     app['env'] = os.environ.get('AIOWEB_ENV', 'development')
     conf = {
@@ -83,16 +93,35 @@ def run_app(app, *,
 
     loop.run_until_complete(app.startup())
     if unix_socket:
-        try:
-            os.unlink(unix_socket)
-        except:
-            pass
-        srv = loop.run_until_complete(loop.create_unix_server(handler, path=unix_socket,
-                                                              ssl=ssl_context,
-                                                              backlog=backlog))
-        os.chmod(unix_socket, 0o664)
-        print("======== Running on unix://{} ========\n"
-              "(Press CTRL+C to quit)".format(unix_socket))
+        sockets = []
+        if servers == 1:
+            sockets = [unix_socket]
+        else:
+            path, ext = os.path.splitext(unix_socket)
+            for i in range(1, servers + 1):
+                sockets.append("{}.{:02d}{}".format(path, i, ext))
+        for socket in sockets:
+            try:
+                os.unlink(socket)
+            except:
+                pass
+            srv = loop.run_until_complete(loop.create_unix_server(handler, path=socket,
+                                                                  ssl=ssl_context,
+                                                                  backlog=backlog))
+            os.chmod(socket, 0o664)
+            print("======== Running on unix://{} ========".format(socket))
+        print("\n(Press CTRL+C to quit)")
+
+        # try:
+        #     os.unlink(unix_socket)
+        # except:
+        #     pass
+        # srv = loop.run_until_complete(loop.create_unix_server(handler, path=unix_socket,
+        #                                                       ssl=ssl_context,
+        #                                                       backlog=backlog))
+        # os.chmod(unix_socket, 0o664)
+        # print("======== Running on unix://{} ========\n"
+        #       "(Press CTRL+C to quit)".format(unix_socket))
     else:
         srv = loop.run_until_complete(loop.create_server(handler, host,
                                                          port, ssl=ssl_context,
@@ -116,6 +145,7 @@ def run_app(app, *,
         loop.run_until_complete(app.cleanup())
     loop.close()
 
+
 def start_app(app, *,
               shutdown_timeout=60.0,
               ssl_context=None,
@@ -125,14 +155,14 @@ def start_app(app, *,
               servers=1,
               log="log/server.log",
               log_level="debug",
-              print=print, 
-              backlog=128, 
+              print=print,
+              backlog=128,
               access_log_format=None,
               access_log=access_logger):
-
     loop = app.loop
     app['env'] = os.environ.get('AIOWEB_ENV', 'development')
-    if not port: port = 8000 if not ssl_context  else 8443
+    if not port:
+        port = 8000 if not ssl_context else 8443
 
     make_handler_kwargs = dict()
     if access_log_format is not None:
@@ -143,13 +173,16 @@ def start_app(app, *,
     if socket:
         sockets = []
         if servers == 1:
-            sockets=[socket]
+            sockets = [socket]
         else:
-            for i in range(1,servers + 1):
-                sockets.append("{:02d}_{}".format(i, socket))
+            path, ext = os.path.splitext(socket)
+            for i in range(1, servers + 1):
+                sockets.append("{}.{:02d}{}".format(path, i, ext))
         for socket in sockets:
-            try: os.unlink(socket)
-            except: pass
+            try:
+                os.unlink(socket)
+            except:
+                pass
             srv = loop.run_until_complete(loop.create_unix_server(handler, path=socket,
                                                                   ssl=ssl_context,
                                                                   backlog=backlog))

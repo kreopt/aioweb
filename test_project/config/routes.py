@@ -6,6 +6,8 @@ from aioweb.util import package_path
 def setup(router):
     router.root('test#index')
     router.get('test#test')
+    router.get('test#html_only')
+    router.get('test#html_except')
     with router.proxy('test#index', is_action=True, name="test") as subroute:
         subroute.get('page1#index')
         subroute.post('/page1/', 'page1#csrf')

@@ -65,8 +65,6 @@ def execute(argv, argv0, engine):
             content = fr.read()
             wrong_class_name = re.search(r"class ([_a-zA-Z0-9]+)", content).group(1)
             right_class_name = inflection.camelize(wrong_class_name.lower())
-            print(wrong_class_name)
-            print(right_class_name)
             with open(model_file, "w") as f:
                 f.write(re.sub(wrong_class_name, right_class_name, content))
             

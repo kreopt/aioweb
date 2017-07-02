@@ -55,8 +55,6 @@ def init_orator(settings):
     Model.set_connection_resolver(DatabaseManager(dbconfig))
 
 
-
-
 def always_say_yes():
     os.environ["WYRM_ANSWER"] = "y"
 
@@ -81,7 +79,7 @@ def names(word, format=[]):
     ret["table"] = inflection.tableize(word)
     ret["model"] = inflection.singularize(ret["table"])
     ret["class"] = inflection.camelize(ret["model"])
-    ret["crud_class"] = inflection.camelize( ret["table"] + "_controller")
+    ret["crud_class"] = inflection.camelize(ret["table"] + "_controller")
     if not format:
         return ret
     ret = [ret[k] for k in format]
@@ -90,7 +88,8 @@ def names(word, format=[]):
 
 def dirs(settings, app=None, format=[], check=False):
     base_dir = os.path.dirname(importlib.util.find_spec(app).origin) if app  else settings.BASE_DIR
-    if app: print(base_dir)
+    if app:
+        print(base_dir)
     ret = {}
     ret["generators"] = os.path.join(base_dir, "wyrm/generators")
     ret["config"] = os.path.join(base_dir, "config")
@@ -104,6 +103,7 @@ def dirs(settings, app=None, format=[], check=False):
     ret["tests_models"] = os.path.join(base_dir, "tests/models") if not app else None
     ret["tests_controllers"] = os.path.join(base_dir, "tests/controllers") if not app else None
     ret["tests_middlewares"]  = os.path.join(base_dir, "tests/middlewares")
+    ret["tests_middleware"] = os.path.join(base_dir, "tests/middlewares")
     if check:
         for k in ret.keys():
             if ret[k] and not os.path.exists(ret[k]):
@@ -129,6 +129,7 @@ def get_template(subpath, settings=None):
         if os.path.exists(path):
             return path
     return None
+
 
 def read_template(subpath, settings=None, replacements={}):
     template_file = get_template(subpath, settings=settings)

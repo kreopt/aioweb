@@ -1,4 +1,4 @@
-const Template = {
+export const Template = {
     interpolateVar(string, variable, value) {
         return string.replace(new RegExp(`([^$])?\\$\{${variable}\}`, 'g'), `$1${value}`)
     },
@@ -7,8 +7,9 @@ const Template = {
             let child = node.childNodes[i];
             // Template.interpolateRecursive(child, variable, value);
             if (child.nodeType == Node.ELEMENT_NODE) {
-                for (let attr of child.attributes) {
-                    child.setAttribute(attr.name, Template.interpolateVar(attr.textContent, variable, value))
+                for (let j=0; j<child.attributes.length; ++j) {
+                    let attr = child.attributes[j];
+                    child.setAttribute(attr.name, Template.interpolateVar(attr.value, variable, value))
                 }
             }
 
@@ -70,5 +71,11 @@ const Template = {
             }
         }
         return clone;
+    },
+    render_to_string: function (template, data) {
+        let frag = Template.render(template, data);
+        let el = document.createElement('div');
+        el.appendChild(frag);
+        return el.innerHTML;
     }
 };

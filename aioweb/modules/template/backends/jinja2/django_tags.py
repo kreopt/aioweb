@@ -1,3 +1,4 @@
+import random
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -61,7 +62,11 @@ class DjangoStatic(Extension):
     tags = set(['static'])
 
     def _static(self, path):
-        return urljoin(settings.STATIC_URL, path)
+        app = self.environment.globals['app']
+        tail = ''
+        # if app['env'] == 'development':
+        #     tail = '?%s' % random.randint(0, 999999)
+        return "%s%s" % (urljoin(settings.STATIC_URL, path), tail)
 
     def parse(self, parser):
         lineno = next(parser.stream).lineno
