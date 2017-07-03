@@ -30,12 +30,9 @@ def before_action(fn, only=tuple(), exclude=tuple()):
     def decorate(cls):
         if not hasattr(cls, '__BEFORE_ACTIONS'):
             setattr(cls, '__BEFORE_ACTIONS', [])
-        for name, member in get_own_properties(cls):
-            if name not in exclude and (name in only or len(only) == 0):
-                # setattr(cls, name, before(fn)(member))
-                getattr(cls, '__BEFORE_ACTIONS').insert(0,
-                                                        {CtlDecoratorDescriptor.VAL: fn, CtlDecoratorDescriptor.ONLY: only,
-                                                         CtlDecoratorDescriptor.EXCEPT: exclude})
+        getattr(cls, '__BEFORE_ACTIONS').insert(0,
+                                                {CtlDecoratorDescriptor.VAL: fn, CtlDecoratorDescriptor.ONLY: only,
+                                                 CtlDecoratorDescriptor.EXCEPT: exclude})
         return cls
 
     return decorate
