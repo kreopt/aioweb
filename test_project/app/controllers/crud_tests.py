@@ -4,6 +4,8 @@ from aioweb.core.controller.decorators import default_layout, before_action, tem
 from aiohttp import web
 from app.models.crud_test import CrudTest
 
+async def somethod(ctrl):
+    print("somethod")
 async def set_model(ctrl):
     ctrl.model = CrudTest.find( (await ctrl.params())["id"])
     if not ctrl.model:
@@ -14,6 +16,7 @@ def new_model(ctrl):
     if not ctrl.model:
         raise web.HTTPNotFound
 
+@before_action(somethod)
 @before_action(new_model, only=('add', 'add_page'))
 @before_action(set_model, only=('get', 'delete', 'edit_page', 'edit'))
 @default_layout('base.html')
