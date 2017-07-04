@@ -50,12 +50,17 @@ class Application(AioApp):
         return module in self.modules
 
     async def _handle(self, request):
-        http_method = request.headers.get('X-Http-Method-Override', '').upper()
-        overriden = request.clone(method=http_method if http_method else request.method,
+        data = await request.post()
+        # http_method = request.headers.get('X-Http-Method-Override', '').upper()
+        http_method = data.get('X-Http-Method-Override', '').upper()
+        if http_method:
+            overriden = request.clone(method=http_method if http_method else request.method,
                                   rel_url="?".join((request.rel_url.path.rstrip(
                                       '/') if request.rel_url.path != '/' else request.rel_url.path,
                                                     request.query_string))
                                   )
+        else:
+            overriden = request
 
         return await super()._handle(overriden)
 
