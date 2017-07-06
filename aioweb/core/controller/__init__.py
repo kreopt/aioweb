@@ -102,6 +102,8 @@ class Controller(object):
 
         serializer = make_serializer(self, cleaned_entries)
 
+        setattr(self.request, 'serializer', serializer)
+
         serializer.raiseIfNotAllowed()
 
 
