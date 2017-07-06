@@ -22,7 +22,7 @@ class BaseSerializer(object):
 
     def raiseIfNotAllowed(self):
         if not self.shouldHandle:
-            raise web.HTTPNotAcceptable(body='');
+            raise web.HTTPNotAcceptable(body='')
 
     def serialize(self, data):
         raise web.HTTPNotAcceptable(body='') # TODO respond with all acceptable content-types

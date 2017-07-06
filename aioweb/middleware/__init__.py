@@ -1,6 +1,7 @@
 import importlib
 
 from aiohttp.log import web_logger
+from aiohttp.web_middlewares import normalize_path_middleware
 
 from aioweb.util import awaitable
 from .is_ajax import middleware as is_ajax
@@ -12,6 +13,7 @@ PRE_DISPATCHERS = []
 
 
 async def setup_middlewares(app):
+    app.middlewares.append(normalize_path_middleware(append_slash=True))
     app.middlewares.append(is_ajax)
     app.middlewares.append(csrf_token)
     csrf_setup(app)
