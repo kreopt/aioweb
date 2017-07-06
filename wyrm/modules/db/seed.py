@@ -32,7 +32,7 @@ def execute(argv, argv0, engine):
         seeds_dir = lib.dirs(settings, format=["seeds"], app=app)
         print("%(seeds_dir)s" % {'seeds_dir': seeds_dir})
 
-        os.system("echo y | orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s" % {
+        os.system("orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s -f" % {
             'environment': environment,
             'base': settings.BASE_DIR,
             'seeds_dir': seeds_dir,
@@ -42,7 +42,7 @@ def execute(argv, argv0, engine):
     seeds_dir = lib.dirs(settings, format=["seeds"])
     print("%(seeds_dir)s" % {'seeds_dir': seeds_dir})
 
-    os.system("echo y | orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s" % {
+    os.system("orator db:seed -c %(base)s/config/database.yml -p %(seeds_dir)s -d %(environment)s -f" % {
         'environment': environment,
         'base': settings.BASE_DIR,
         'seeds_dir': seeds_dir,

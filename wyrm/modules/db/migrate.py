@@ -41,7 +41,6 @@ def execute(argv, argv0, engine):
     #        'migrations_dir': migrations_dir,
     #    })
 
-    print("[ app ]")
     migrations_dir = lib.dirs(settings, format=["migrations"])
 
     os.system("orator migrate -c %(base)s/config/database.yml "
