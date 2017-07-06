@@ -23,14 +23,14 @@ def execute(argv, argv0, engine):
         usage(argv0)
     flags = []
     if '--no-input' in argv or '-n' in argv:
-        flags.append('-n')
+        flags.append('-n -f')
 
     oldcwd = os.getcwd()
 
     os.makedirs(os.path.join(settings.BASE_DIR, 'db'), exist_ok=True)
     os.chdir(os.path.join(settings.BASE_DIR, 'db'))
 
-    #for app in settings.APPS:
+    # for app in settings.APPS:
     #    print("[ %s ]" % app)
     #    migrations_dir = lib.dirs(settings, format=["migrations"], app=app)
     #    print("%(migrations_dir)s" % {'migrations_dir': migrations_dir})
@@ -44,12 +44,14 @@ def execute(argv, argv0, engine):
     print("[ app ]")
     migrations_dir = lib.dirs(settings, format=["migrations"])
 
-    os.system("orator migrate -c %(base)s/config/database.yml -p %(migrations_dir)s -d %(environment)s %(flags)s" % {
-        'environment': environment,
-        'base': settings.BASE_DIR,
-        'migrations_dir': migrations_dir,
-        'flags': ' '.join(flags)
-    })
+    os.system("orator migrate -c %(base)s/config/database.yml "
+              "--migration-config %(base)s/config/migrations.yml "
+              "-p %(migrations_dir)s "
+              "-d %(environment)s %(flags)s" % {
+                  'environment': environment,
+                  'base': settings.BASE_DIR,
+                  'migrations_dir': migrations_dir,
+                  'flags': ' '.join(flags)
+              })
 
     os.chdir(oldcwd)
-
