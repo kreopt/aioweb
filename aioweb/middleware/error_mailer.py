@@ -10,7 +10,7 @@ from aioweb.modules.email import send_mail
 
 
 async def mail_traceback(request):
-    if request.app['env'] == 'development':
+    if request.app.get('env', 'development') == 'development':
         traceback.print_exc()
     else:
         trace = traceback.format_exc()
