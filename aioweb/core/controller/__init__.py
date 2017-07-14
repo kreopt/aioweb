@@ -41,10 +41,13 @@ class Controller(object):
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
                                  self.path_for(action, prefix, params=params))
 
-    async def params(self, *args, parse_body=True):
+    async def params(self, *args, parse_body=True, require=True):
         if self._private.parameters is None:
             self._private.parameters = (await StrongParameters().parse(self.request, parse_body=parse_body)).with_routes(self.request)
-        return self._private.parameters.permit(*args) if args else self._private.parameters
+        if require:
+            return self._private.parameters.require(*args) if args else self._private.parameters
+        else:
+            return self._private.parameters.permit(*args) if args else self._private.parameters
 
     async def query(self, *args):
         if self._private.query is None:
@@ -80,32 +83,6 @@ class Controller(object):
         self._private.template = view
 
     async def _dispatch(self, action, actionName):
-
-        accept = self.request.headers.get('accept', self.__class__.DEFAULT_MIME)
-        accept_entries = accept.split(',')
-
-        allowed_content_type = getattr(action, 'content_type', {
-            CtlDecoratorDescriptor.EXCEPT: tuple(),
-            CtlDecoratorDescriptor.ONLY: tuple()
-        })
-
-        cleaned_entries = []
-        for entry in accept_entries:
-            cleaned_entry = entry.split(';')[0].strip()
-            mime, subtype = cleaned_entry.split('/')
-            if mime == '*':
-                cleaned_entry = self.__class__.DEFAULT_MIME
-            if cleaned_entry not in allowed_content_type[CtlDecoratorDescriptor.EXCEPT] and \
-                    (cleaned_entry in allowed_content_type[CtlDecoratorDescriptor.ONLY] or
-                             len(allowed_content_type[CtlDecoratorDescriptor.ONLY]) == 0):
-                cleaned_entries.append(cleaned_entry)
-
-        serializer = make_serializer(self, cleaned_entries)
-
-        setattr(self.request, 'serializer', serializer)
-
-        serializer.raiseIfNotAllowed()
-
 
         self._private.layout = getattr(self.__class__,
                                        'LAYOUT') if not self.request.is_ajax() else Controller.EMPTY_LAYOUT
@@ -147,7 +124,7 @@ class Controller(object):
             res = {}
         res.update(beforeActionRes)
 
-        response = serializer.serialize(res)
+        response = self.request.serializer.serialize(res)
 
         try:
             headers = getattr(self.__class__, '__HEADERS')

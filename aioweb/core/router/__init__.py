@@ -10,7 +10,8 @@ from aioweb.middleware import PRE_DISPATCHERS
 from aioweb.util import extract_name_from_class, awaitable, import_controller
 from aioweb.core.model import Model
 from .mutidirstatic import StaticMultidirResource
-
+from aioweb.core.controller.decorators import CtlDecoratorDescriptor
+from aioweb.core.controller.serializers import make_serializer
 
 class Router(object):
     def __init__(self, app, name='', prefix='', parent=None, package=None, pre_dispatchers=tuple()):
@@ -99,6 +100,31 @@ class Router(object):
             except AttributeError as e:
                 raise web.HTTPNotFound(reason='Action %s#%s not found' % (controller, action_name))
 
+            accept = request.headers.get('accept', ctrl_instance.__class__.DEFAULT_MIME)
+            accept_entries = accept.split(',')
+
+            allowed_content_type = getattr(action, 'content_type', {
+                CtlDecoratorDescriptor.EXCEPT: tuple(),
+                CtlDecoratorDescriptor.ONLY: tuple()
+            })
+
+            cleaned_entries = []
+            for entry in accept_entries:
+                cleaned_entry = entry.split(';')[0].strip()
+                mime, subtype = cleaned_entry.split('/')
+                if mime == '*':
+                    cleaned_entry = ctrl_instance.__class__.DEFAULT_MIME
+                if cleaned_entry not in allowed_content_type[CtlDecoratorDescriptor.EXCEPT] and \
+                        (cleaned_entry in allowed_content_type[CtlDecoratorDescriptor.ONLY] or
+                                 len(allowed_content_type[CtlDecoratorDescriptor.ONLY]) == 0):
+                    cleaned_entries.append(cleaned_entry)
+
+            serializer = make_serializer(self, cleaned_entries)
+
+            setattr(request, 'serializer', serializer)
+
+            serializer.raiseIfNotAllowed()
+
             # TODO: something better
             for preDispatcher in PRE_DISPATCHERS:
                 if callable(preDispatcher):
@@ -107,6 +133,7 @@ class Router(object):
             for preDispatcher in self.preDispatchers:
                 if callable(preDispatcher):
                     await awaitable(preDispatcher(request, ctrl_instance, action_name))
+
             return await ctrl_instance._dispatch(action, action_name)
 
         url = "/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name)
