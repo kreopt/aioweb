@@ -1,4 +1,11 @@
 import re
+from aiohttp import web
+
+
+class Or(list):
+    def __init__(self, *args):
+        super().__init__()
+        self.extend(args)
 
 
 class StrongParameters(dict):
@@ -15,6 +22,21 @@ class StrongParameters(dict):
         for k,v in request.match_info.items():
             self[k]=v
         return self
+
+    def require(self, *args):
+        data = self.permit(*args)
+        for arg in args:
+            if type(arg) == str:
+                if arg not in data:
+                    raise web.HTTPBadRequest()
+            elif type(arg) == Or:
+                found = False
+                for item in arg:
+                    if item in data:
+                        found = True
+                        break
+                if not found:
+                    raise web.HTTPBadRequest()
 
     def permit(self, *args):
         # Examples:
