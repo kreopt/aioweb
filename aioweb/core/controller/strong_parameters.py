@@ -58,6 +58,12 @@ class StrongParameters(dict):
             if type(arg) is list:
                 ret = StrongParameters({**ret, **self.permit(*arg)})
 
+            elif type(arg) is Or:
+                for item in arg:
+                    v = self.get(item)
+                    if type(v) is str:
+                        ret[item] = v
+
             elif type(arg) is str:
                 v = self.get(arg)
                 if type(v) is str:
