@@ -37,6 +37,7 @@ class StrongParameters(dict):
                         break
                 if not found:
                     raise web.HTTPBadRequest()
+        return data
 
     def permit(self, *args):
         # Examples:
