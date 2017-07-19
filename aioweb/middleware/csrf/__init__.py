@@ -20,11 +20,14 @@ CSRF_LENGTH = 128
 CSRF_SALT_LENGTH = 6
 CSRF_ALLOWED_CHARS = string.ascii_letters + string.digits
 
+
 def generate_csrf_secret():
     return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_LENGTH)])
 
+
 def generate_salt():
     return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_SALT_LENGTH)])
+
 
 async def get_secret(request):
     """
@@ -36,19 +39,23 @@ async def get_secret(request):
         return session[CSRF_SESSION_NAME]
     return await set_secret(request)
 
+
 async def get_token(request):
     salt = generate_salt()
     secret = await get_secret(request)
     return "{}${}".format(salt, sha256("{}${}".format(salt, secret).encode()).hexdigest())
+
 
 async def set_secret(request):
     session = await get_session(request)
     session[CSRF_SESSION_NAME] = generate_csrf_secret()
     return session[CSRF_SESSION_NAME]
 
+
 def validate_token(token, secret):
     salt, hashed = token.split('$', maxsplit=1)
     return hashed == sha256("{}${}".format(salt, secret).encode()).hexdigest()
+
 
 async def middleware(app, handler):
     async def middleware_handler(request):

@@ -119,7 +119,7 @@ class Router(object):
                                  len(allowed_content_type[CtlDecoratorDescriptor.ONLY]) == 0):
                     cleaned_entries.append(cleaned_entry)
 
-            serializer = make_serializer(self, cleaned_entries)
+            serializer = make_serializer(ctrl_instance, cleaned_entries)
 
             setattr(request, 'serializer', serializer)
 
