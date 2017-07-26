@@ -19,7 +19,7 @@ REASON_BAD_TOKEN = "CSRF token missing or incorrect."
 CSRF_LENGTH = 128
 CSRF_SALT_LENGTH = 6
 CSRF_ALLOWED_CHARS = string.ascii_letters + string.digits
-
+CSRF_TOKEN_SEPARATOR = '-'
 
 def generate_csrf_secret():
     return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_LENGTH)])
@@ -43,7 +43,7 @@ async def get_secret(request):
 async def get_token(request):
     salt = generate_salt()
     secret = await get_secret(request)
-    return "{}${}".format(salt, sha256("{}${}".format(salt, secret).encode()).hexdigest())
+    return "{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest())
 
 
 async def set_secret(request):
@@ -53,8 +53,8 @@ async def set_secret(request):
 
 
 def validate_token(token, secret):
-    salt, hashed = token.split('$', maxsplit=1)
-    return hashed == sha256("{}${}".format(salt, secret).encode()).hexdigest()
+    salt, hashed = token.split('-', maxsplit=1)
+    return hashed == sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest()
 
 
 async def middleware(app, handler):
