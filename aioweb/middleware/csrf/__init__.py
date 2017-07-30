@@ -40,10 +40,14 @@ async def get_secret(request):
     return await set_secret(request)
 
 
+def make_token(salt, secret):
+    return "{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR,
+                           sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest())
+
 async def get_token(request):
     salt = generate_salt()
     secret = await get_secret(request)
-    return "{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest())
+    return make_token(salt, secret)
 
 
 async def set_secret(request):
@@ -54,7 +58,7 @@ async def set_secret(request):
 
 def validate_token(token, secret):
     salt, hashed = token.split('-', maxsplit=1)
-    return hashed == sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest()
+    return hashed == make_token(salt, secret)
 
 
 async def middleware(app, handler):

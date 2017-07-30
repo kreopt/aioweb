@@ -16,6 +16,8 @@ class Controller(object):
 
     def __init__(self, request, router):
         self.app = request.app
+        if hasattr(self.app, 'db'):
+            self.db = self.app.db
         self.request = request
         self._private = PrivateData(
             search_path='',
