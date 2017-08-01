@@ -58,7 +58,7 @@ async def set_secret(request):
 
 def validate_token(token, secret):
     salt, hashed = token.split('-', maxsplit=1)
-    return hashed == make_token(salt, secret)
+    return token == make_token(salt, secret)
 
 
 async def middleware(app, handler):
