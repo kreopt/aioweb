@@ -41,6 +41,7 @@ async def init_db(app):
         if isinstance(default_conf, dict):
             if default_conf.get('driver') == 'pgsql':
                 import aiopg
+                import psycopg2.extras
                 # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
                 app['db_pool'] = await aiopg.create_pool("dbname={} host={} port={} user={} password={}".format(
                     default_conf.get('database'),
@@ -49,7 +50,7 @@ async def init_db(app):
                     default_conf.get('user'),
                     default_conf.get('password'),
                 ))
-                setattr(app, 'dbc', DBPGWrapper(app['db_pool']))
+                setattr(app, 'dbc', DBPGWrapper(app['db_pool'], cursor=psycopg2.extras.RealDictCursor))
             elif default_conf.get('driver') == 'sqlite':
                 import aioodbc
                 app['db_pool'] = await aioodbc.create_pool("Database=".format(
@@ -104,24 +105,35 @@ class DBWrapper(object):
     def _prepare_sql(self, sql):
         return sql
 
-    async def execute(self, sql, bindings):
+    def _get_cursor(self, conn):
+        return conn.cursor()
+
+    async def execute(self, sql, bindings=tuple()):
         async with self.pool.acquire() as conn:
-            async with conn.cursor() as cur:
+            async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
 
-    async def query(self, sql, bindings):
+    async def query(self, sql, bindings=tuple()):
         async with self.pool.acquire() as conn:
-            async with conn.cursor() as cur:
+            async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
                 return await cur.fetchall()
 
-    async def first(self, sql, bindings):
+    async def first(self, sql, bindings=tuple()):
         async with self.pool.acquire() as conn:
-            async with conn.cursor() as cur:
+            async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
                 return await cur.fetchone()
 
 
 class DBPGWrapper(DBWrapper):
+
+    def __init__(self, pool, cursor=None):
+        super().__init__(pool)
+        self.cursor_type = cursor
+
+    def _get_cursor(self, conn):
+        return conn.cursor(cursor_factory=self.cursor_type)
+
     def _prepare_sql(self, sql):
         return re.sub(':([a-zA-Z_][a-zA-Z_0-9]*)', '%(\\1)s', sql.replace('?', '%s'))
