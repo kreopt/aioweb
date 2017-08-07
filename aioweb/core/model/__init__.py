@@ -1,4 +1,4 @@
-from orator import *
+from orator import Model as OratorModel, mutator, accessor
 
 class Model(object):
 
