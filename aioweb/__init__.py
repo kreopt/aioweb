@@ -4,6 +4,7 @@ import traceback
 
 from aiohttp.log import web_logger, access_logger
 from aiohttp.web import Application as AioApp
+from aioweb.util import awaitable
 from yarl import URL
 
 from aioweb.middleware import setup_middlewares
@@ -36,6 +37,13 @@ class Application(AioApp):
         await setup_middlewares(self)
         router.setup_routes(self)
 
+        try:
+            mod = importlib.import_module("app")
+            setup = getattr(mod, 'setup')
+            await awaitable(setup(self))
+        except (ImportError, AttributeError) as e:
+            pass
+
     async def shutdown(self):
         for mod_name in settings.MODULES:
             try:
@@ -45,6 +53,12 @@ class Application(AioApp):
                     await shutdown(self)
             except (ImportError, AttributeError) as e:
                 pass
+        try:
+            mod = importlib.import_module("app")
+            shutdown = getattr(mod, 'shutdown')
+            await awaitable(shutdown(self))
+        except (ImportError, AttributeError) as e:
+            pass
 
     def has_module(self, module):
         return module in self.modules
