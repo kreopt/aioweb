@@ -17,6 +17,7 @@ async def setup(app):
     procs = [aiohttp_jinja2.request_processor]
     # setup Jinja2 template renderer
     app_loaders = [
+        jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views_min/")),
         jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")),
         jinja2.PackageLoader("aioweb", "views/")
     ]

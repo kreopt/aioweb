@@ -1,3 +1,4 @@
+import filecmp
 import getpass
 import sys
 import os
@@ -15,7 +16,7 @@ from optparse import OptionParser
 def recursive_overwrite(src, dest, ignore=None):
     if os.path.isdir(src):
         if not os.path.isdir(dest):
-            os.makedirs(dest)
+            os.makedirs(dest, exist_ok=True)
         files = os.listdir(src)
         if ignore is not None:
             ignored = ignore(src, files)
@@ -27,9 +28,16 @@ def recursive_overwrite(src, dest, ignore=None):
                                     os.path.join(dest, f),
                                     ignore)
     else:
-        print(src)
-        shutil.copyfile(src, dest)
+        if not os.path.exists(dest) or not filecmp.cmp(src, dest):
+            print('copy {}'.format(src))
+            shutil.copyfile(src, dest)
+            shutil.copystat(src, dest)
 
+def collectstatic(src_dir, dst_dir, ignore=None, overwrite=True):
+    os.makedirs(dst_dir, exist_ok=True)
+
+    if os.path.exists(src_dir):
+        recursive_overwrite(src_dir, dst_dir, ignore=ignore)
 
 
 def execute(argv, argv0, engine):
