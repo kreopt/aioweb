@@ -1,4 +1,6 @@
 import email
+from email.message import EmailMessage
+
 import aiosmtplib
 from aioweb.conf import settings
 
@@ -10,15 +12,17 @@ async def send_mail(app,
                     body=''):
     if not len(recipients):
         return
-    await app.smtp.connect()
+    async with app.smtp as conn:
 
-    msg = email.message_from_string(body)
+        msg = EmailMessage()
 
-    msg['Subject'] = subject
-    msg['From'] = sender
-    msg['To'] = ', '.join(recipients)
+        msg['Subject'] = subject
+        msg['From'] = sender
+        msg['To'] = ', '.join(recipients)
 
-    return await app.smtp.send_message(msg, sender, recipients)
+        msg.set_content(body)
+
+        return await conn.send_message(msg, sender, recipients, timeout=5)
 
 
 async def setup(app):

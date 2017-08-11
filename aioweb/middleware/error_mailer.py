@@ -33,6 +33,9 @@ async def mail_traceback(request):
         except aiosmtplib.errors.SMTPConnectError as e:
             web_logger.warn("Failed to connect to SMTP server\n%s" % e.message)
             print(trace)
+        except Exception as e:
+            traceback.print_exc()
+            print(trace)
 
 
 async def middleware(app, handler):
