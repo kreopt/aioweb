@@ -91,6 +91,7 @@ def run_app(app, *,
 
     host = conf['host']
     port = conf['port']
+    servers = conf.get('servers', 1)
     unix_socket = conf.get('unix')
 
     if port is None:

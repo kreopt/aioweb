@@ -15,7 +15,7 @@ async def setup(app):
         if hasattr(settings, 'SESSION_STORAGE'):
             try:
                 mod = importlib.import_module(settings.SESSION_STORAGE)
-                storage = await getattr(mod, 'make_storage')(app)
+                storage = await getattr(mod, 'setup')(app)
             except:
                 web_logger.warn(
                     "failed to setup {} storage. Using simple cookie storage".format(settings.SESSION_STORAGE))
@@ -33,6 +33,13 @@ async def setup(app):
 
 
 async def shutdown(app):
+    if hasattr(settings, 'SESSION_STORAGE'):
+        try:
+            mod = importlib.import_module(settings.SESSION_STORAGE)
+            await getattr(mod, 'shutdown')(app)
+        except:
+            pass
+
     if app.get('redis_pool'):
         app['redis_pool'].close()
         await app['redis_pool'].wait_closed()
