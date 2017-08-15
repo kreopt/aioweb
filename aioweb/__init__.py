@@ -87,7 +87,8 @@ def run_app(app, *,
         'port': 8000
     }
     conf_reader = ConfigReader('config/server.yml')
-    conf.update(conf_reader.config.get(app['env']))
+    if conf_reader.config:
+        conf.update(conf_reader.config.get(app['env']))
 
     host = conf['host']
     port = conf['port']
