@@ -136,17 +136,31 @@ class Router(object):
 
             return await ctrl_instance._dispatch(action, action_name)
 
-        url = "/%s/%s" % (controller, '' if action_name == 'index' else '%s/' % action_name)
+        url = "/%s%s" % ('' if controller == 'index' else controller,
+                         '' if action_name == 'index' else '/%s/' % action_name)
 
-        return [url, action_handler,
-                "%s.%s" % (extract_name_from_class(ctrl_class.__name__, 'Controller'), action_name)]
+        if controller == 'index':
+            if action_name == 'index':
+                route_name = 'index'
+            else:
+                route_name = action_name
+        else:
+            route_name = "%s.%s" % (extract_name_from_class(ctrl_class.__name__, 'Controller'), action_name)
+        return [url, action_handler, route_name]
 
     def _resolve_handler_by_name(self, name):
         try:
             [controller, action] = name.split('#')
         except ValueError as e:
-            web_logger.warn("invalid action signature: %s. skip" % name)
-            raise e
+            controller = name
+            action = 'index'
+
+        if controller == '':
+            controller = 'index'
+        if action == '':
+            action = 'index'
+
+
         return self.resolve_action(controller, action)
 
     def _resolve_handler(self, url, handler=None):
@@ -243,6 +257,9 @@ class Router(object):
         self._currentPrefix = self._get_baseurl(url)
         self._currentPackage = self.package
         return self
+
+    def controller(self, name, prefix=''):
+        pass
 
     def static(self, prefix, search_paths, *args, **kwargs):
         assert prefix.startswith('/')
