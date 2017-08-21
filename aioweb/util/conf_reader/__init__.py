@@ -29,6 +29,8 @@ class ConfigReader(object):
                 part = parts.pop()
                 if part in tree:
                     tree = tree[part]
+                else:
+                    return None
             else:
                 return None
         return tree
