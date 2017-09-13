@@ -119,11 +119,14 @@ class DBWrapper(object):
                 await cur.execute(self._prepare_sql(sql), bindings)
                 return await cur.fetchall()
 
-    async def first(self, sql, bindings=tuple()):
+    async def first(self, sql, bindings=tuple(), column=None):
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
-                return await cur.fetchone()
+                res = await cur.fetchone()
+                if column:
+                    return res[column]
+                return res
 
 
 class DBPGWrapper(DBWrapper):
