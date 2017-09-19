@@ -2,12 +2,12 @@ import os
 
 import re
 
-from orator import DatabaseManager
+# from orator import DatabaseManager
 
 from aioweb import ConfigReader
 from aioweb.conf import settings
 
-from orator import Model as OratorModel
+# from orator import Model as OratorModel
 
 from aioweb.core.model import Model
 
@@ -26,9 +26,9 @@ def get_dbconfig():
 def init_db_engine():
     dbconfig = get_dbconfig()
 
-    if OratorModel.get_connection_resolver():
-        OratorModel.get_connection_resolver().disconnect()
-        OratorModel.set_connection_resolver(DatabaseManager(dbconfig))
+    # if OratorModel.get_connection_resolver():
+    #     OratorModel.get_connection_resolver().disconnect()
+    #     OratorModel.set_connection_resolver(DatabaseManager(dbconfig))
 
 
 async def init_db(app):
@@ -50,18 +50,18 @@ async def init_db(app):
                     default_conf.get('user'),
                     default_conf.get('password'),
                 ))
-                setattr(app, 'dbc', DBPGWrapper(app['db_pool'], cursor=psycopg2.extras.RealDictCursor))
+                setattr(app, 'db', DBPGWrapper(app['db_pool'], cursor=psycopg2.extras.RealDictCursor))
             elif default_conf.get('driver') == 'sqlite':
                 import aioodbc
                 app['db_pool'] = await aioodbc.create_pool("Database=".format(
                     os.path.join(settings.BASE_DIR, 'db', default_conf.get('database', 'db.sqlite3'))))
-                setattr(app, 'dbc', DBWrapper(app['db_pool']))
+                setattr(app, 'db', DBWrapper(app['db_pool']))
                 # web_logger.warn("database path: %s" % db_conf['database'])
-        db = DatabaseManager(db_conf)
-        OratorModel.set_connection_resolver(db)
-        if hasattr(app, 'dbc'):
-            Model.set_db(app.dbc)
-        setattr(app, 'db', db)
+        # db = DatabaseManager(db_conf)
+        # OratorModel.set_connection_resolver(db)
+        if hasattr(app, 'db'):
+            Model.set_db(app.db)
+        # setattr(app, 'db', db)
 
 async def close_db(app):
     if hasattr(app, 'db'):
@@ -89,7 +89,6 @@ async def setup(app):
     app.on_startup.append(init_db)
     # shutdown db connection on exit
     # app.middlewares.append(db_to_request)
-
 
 
 async def shutdown(app):
@@ -120,6 +119,15 @@ class DBWrapper(object):
                 return await cur.fetchall()
 
     async def first(self, sql, bindings=tuple(), column=None):
+        async with self.pool.acquire() as conn:
+            async with self._get_cursor(conn) as cur:
+                await cur.execute(self._prepare_sql(sql), bindings)
+                res = await cur.fetchone()
+                if column:
+                    return res[column]
+                return res
+
+    async def call(self, sql, bindings=tuple(), column=None):
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
