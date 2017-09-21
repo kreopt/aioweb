@@ -43,10 +43,14 @@ async def init_db(app):
                 import aiopg
                 import psycopg2.extras
                 # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
-                app['db_pool'] = await aiopg.create_pool("dbname={} host={} port={} user={} password={}".format(
+                host_info = []
+                if default_conf.get('host'):
+                    host_info.append('host = {}'.format(default_conf.get('host')))
+                if default_conf.get('port'):
+                    host_info.append('port = {}'.format(default_conf.get('port')))
+                app['db_pool'] = await aiopg.create_pool("dbname={} {} user={} password={}".format(
                     default_conf.get('database'),
-                    default_conf.get('host', '127.0.0.1'),
-                    default_conf.get('port', 5432),
+                    ' '.join(host_info),
                     default_conf.get('user'),
                     default_conf.get('password'),
                 ))
@@ -97,9 +101,38 @@ async def shutdown(app):
         await app['db_pool'].wait_closed()
 
 
+class DBFn(object):
+    def __init__(self, db_wrapper, fn):
+        self.db_wrapper = db_wrapper
+        self.fn = fn
+
+    def __call__(self, *args, **kwargs):
+        if len(args):
+            formatted_args = ','.join(['?' for e in args])
+            _args = args
+        elif len(kwargs):
+            formatted_args = ','.join(['{}=:{}'.format(k, k) for k in kwargs])
+            _args = kwargs
+        else:
+            formatted_args = ''
+            _args = {}
+
+        sql = 'select {}({})'.format(self.fn, formatted_args)
+        yield from self.db_wrapper.first(sql, _args).__await__()
+
+
+class DBFnCaller(object):
+    def __init__(self, db_wrapper):
+        self.db_wrapper = db_wrapper
+
+    def __getattr__(self, item):
+        return DBFn(self.db_wrapper, item)
+
+
 class DBWrapper(object):
     def __init__(self, pool):
         self.pool = pool
+        self.fn = DBFnCaller(self)
 
     def _prepare_sql(self, sql):
         return sql

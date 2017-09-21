@@ -97,11 +97,11 @@ class Controller(object):
 
         # TODO: something better
         beforeActionRes = {}
-        for corsDomain in getattr(self.__class__, '__BEFORE_ACTIONS', []):
-            if actionName not in corsDomain[CtlDecoratorDescriptor.EXCEPT] and \
-                    (actionName in corsDomain[CtlDecoratorDescriptor.ONLY] or
-                             len(corsDomain[CtlDecoratorDescriptor.ONLY]) == 0):
-                res = await awaitable(corsDomain[CtlDecoratorDescriptor.VAL](self))
+        for beforeAction in getattr(self.__class__, '__BEFORE_ACTIONS', []):
+            if actionName not in beforeAction[CtlDecoratorDescriptor.EXCEPT] and \
+                    (actionName in beforeAction[CtlDecoratorDescriptor.ONLY] or
+                             len(beforeAction[CtlDecoratorDescriptor.ONLY]) == 0):
+                res = await awaitable(beforeAction[CtlDecoratorDescriptor.VAL](self))
 
                 if isinstance(res, web.Response):
                     return res

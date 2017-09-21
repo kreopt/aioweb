@@ -16,7 +16,7 @@ async def setup(app):
             try:
                 mod = importlib.import_module(settings.SESSION_STORAGE)
                 storage = await getattr(mod, 'setup')(app)
-            except:
+            except Exception as e:
                 web_logger.warn(
                     "failed to setup {} storage. Using simple cookie storage".format(settings.SESSION_STORAGE))
         if not storage:
