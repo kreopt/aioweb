@@ -28,4 +28,5 @@ async def send_mail(app,
 async def setup(app):
     setattr(app, 'smtp', aiosmtplib.SMTP(hostname=app.conf.get('email.host', 'localhost'),
                                          port=app.conf.get('email.port', 25),
+                                         timeout=app.conf.get('email.timeout', 5),
                                          loop=app.loop))
