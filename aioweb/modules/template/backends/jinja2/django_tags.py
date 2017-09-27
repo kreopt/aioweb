@@ -124,10 +124,21 @@ class DjangoUrl(Extension):
         return self.environment.globals['url'](path)
 
     def _url_reverse(self, name, *args, **kwargs):
-        if len(kwargs):
-            return self.environment.globals['url'](name, parts=kwargs)
+        if 'query_' in kwargs:
+            query = kwargs.pop('query_')
         else:
-            return self.environment.globals['url'](name)
+            query = None
+
+        url = self.environment.globals['app'].router[name].url_for(**kwargs)
+        if query:
+            url = url.with_query(query)
+
+        return url
+
+        # if len(kwargs):
+        #     return self.environment.globals['url'](name, parts=kwargs)
+        # else:
+        #     return self.environment.globals['url'](name)
 
     @staticmethod
     def parse_expression(parser):
