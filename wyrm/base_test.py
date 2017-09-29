@@ -78,33 +78,33 @@ def init():
     os.environ["AIOWEB_ENV"] = "test"
     from aioweb.conf import settings
     wyrm.lib.init_orator(settings)
-
-    resolver = Model.get_connection_resolver()
-    repository = DatabaseMigrationRepository(resolver, 'migrations')
-    migrator = Migrator(repository, resolver)
-    migrator.set_connection("test")
-
-    pretend = False
-
-    if not migrator.repository_exists():
-        repository.set_source("test")
-        repository.create_repository()
-
-    path = wyrm.lib.dirs(settings, format=["migrations"])
-
-    migration_paths, seed_paths = get_migration_paths(settings)
-
-    migration_paths.append(path)
-
-    #migrator.reset(path, pretend)
-    migrator.run(migration_paths, pretend)
-
-    try:
-        mod = importlib.import_module('db.seeds.database_seeder')
-        seeder = getattr(mod, 'DatabaseSeeder')
-        seeder(resolver).run()
-    except:
-        pass
+    #
+    # resolver = Model.get_connection_resolver()
+    # repository = DatabaseMigrationRepository(resolver, 'migrations')
+    # migrator = Migrator(repository, resolver)
+    # migrator.set_connection("test")
+    #
+    # pretend = False
+    #
+    # if not migrator.repository_exists():
+    #     repository.set_source("test")
+    #     repository.create_repository()
+    #
+    # path = wyrm.lib.dirs(settings, format=["migrations"])
+    #
+    # migration_paths, seed_paths = get_migration_paths(settings)
+    #
+    # migration_paths.append(path)
+    #
+    # #migrator.reset(path, pretend)
+    # migrator.run(migration_paths, pretend)
+    #
+    # try:
+    #     mod = importlib.import_module('db.seeds.database_seeder')
+    #     seeder = getattr(mod, 'DatabaseSeeder')
+    #     seeder(resolver).run()
+    # except:
+    #     pass
 
 class AioWebTestCase(unittest.TestCase):
     refresh_db_before_test = True
@@ -155,8 +155,8 @@ class AioWebTestCase(unittest.TestCase):
         self.client = aiohttp.test_utils.TestClient(self.app, loop=self.loop)
 
     def setUp(self):
-        if self.refresh_db_before_test:
-            self.refresh_db()
+        # if self.refresh_db_before_test:
+        #     self.refresh_db()
         if self.start_server:
             self.loop.run_until_complete(self.client.start_server())
 

@@ -5,7 +5,11 @@ class Model(object):
 
     @classmethod
     def set_db(cls, db):
-        cls.__db = db
+        cls.__db = db\
+
+    @classmethod
+    def get_db(cls):
+        return cls.__db
 
     @property
     def db(self):

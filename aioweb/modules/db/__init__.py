@@ -170,7 +170,7 @@ class DBWrapper(object):
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
                 res = await cur.fetchone()
-                if column:
+                if res and column:
                     return res[column]
                 return res
 
