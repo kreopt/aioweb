@@ -163,7 +163,8 @@ class DBWrapper(object):
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
-                return await cur.fetchall()
+                r = await cur.fetchall()
+                return r if r else []
 
     async def first(self, sql, bindings=tuple(), column=None):
         async with self.pool.acquire() as conn:
