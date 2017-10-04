@@ -1,17 +1,13 @@
 aiohttp>=2.0
-aiohttp_jinja2
 aiohttp_security
 aioredis
 aiosmtplib
 aiohttp_session
-aiohttp-devtools
-aiohttp_debugtoolbar
 aiofiles
 cryptography
 daemonize
 passlib
 pytest-asyncio
 pytest-aiohttp
-orator
 pyyaml
 inflect

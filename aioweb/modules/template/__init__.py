@@ -5,6 +5,7 @@ __backend = importlib.import_module("aioweb.modules.template.backends.%s" % sett
 
 render = getattr(__backend, 'render')
 render_string = getattr(__backend, 'render_string')
+get_env = getattr(__backend, 'get_env')
 
 
 async def setup(app):

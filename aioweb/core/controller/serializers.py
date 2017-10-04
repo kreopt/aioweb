@@ -1,8 +1,6 @@
 import re
 
 from aiohttp import web
-from aiohttp_jinja2 import APP_KEY
-
 from aioweb.modules import template
 
 
@@ -31,7 +29,7 @@ class BaseSerializer(object):
 class JsonSerializer(BaseSerializer):
     CONTENT_TYPES = ["application/json"]
 
-    def serialize(self, data):
+    async def serialize(self, data):
         return web.json_response(data)
 
 
@@ -40,7 +38,7 @@ class TemplateSerializer(BaseSerializer):
 
     def serialize(self, data):
         try:
-            self.controller.request.app[APP_KEY].globals['controller'] = self.controller
+            template.get_env(self.controller.request.app).globals['controller'] = self.controller
             return template.render(self.controller._private.template, self.controller.request, data)
         except web.HTTPInternalServerError as e:
             if self.controller.request.is_ajax():

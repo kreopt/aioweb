@@ -126,7 +126,7 @@ class Controller(object):
             res = {}
         res.update(beforeActionRes)
 
-        response = self.request.serializer.serialize(res)
+        response = await self.request.serializer.serialize(res)
 
         try:
             headers = getattr(self.__class__, '__HEADERS')
