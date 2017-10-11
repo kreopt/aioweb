@@ -11,10 +11,12 @@ def extract_name_from_class(class_name, item_type):
     return inflection.underscore(re.sub('%s$' % item_type, '', class_name))
 
 
-async def awaitable(result):
+def awaitable(result):
     if asyncio.iscoroutine(result):
-        return await result
-    return result
+        return result
+    f = asyncio.Future()
+    f.set_result(result)
+    return f
 
 
 def package_path(pkg):

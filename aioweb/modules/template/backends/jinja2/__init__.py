@@ -12,7 +12,6 @@ from aioweb.conf import settings
 
 from .django_tags import DjangoStatic, DjangoLoad, DjangoUrl, DjangoTrans, DjangoNow
 
-
 APP_CONTEXT_PROCESSORS_KEY = 'aioweb_jinja2_context_processors'
 APP_KEY = 'aioweb_jinja2_environment'
 REQUEST_CONTEXT_KEY = 'aioweb_jinja2_context'
@@ -24,6 +23,7 @@ async def context_processors_middleware(app, handler):
         for processor in app[APP_CONTEXT_PROCESSORS_KEY]:
             request[REQUEST_CONTEXT_KEY].update(await processor(request))
         return await handler(request)
+
     return middleware
 
 
@@ -64,7 +64,7 @@ def render_string(template_name, request, context, *, app_key=APP_KEY):
 
 
 async def render(template_name, request, context, *,
-                    app_key=APP_KEY, encoding='utf-8', status=200):
+                 app_key=APP_KEY, encoding='utf-8', status=200):
     response = web.Response(status=status)
     if context is None:
         context = {}
@@ -74,8 +74,10 @@ async def render(template_name, request, context, *,
     response.text = text
     return response
 
+
 def get_env(app):
     return app[APP_KEY]
+
 
 async def setup(app):
     procs = [request_processor]
