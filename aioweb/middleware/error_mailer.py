@@ -16,7 +16,10 @@ async def mail_traceback(request):
         trace = traceback.format_exc()
         try:
             # Create a text/plain message
-            post = await request.post()
+            if request.content_type == 'multipart/form-data':
+                post = '<multipart>'
+            else:
+                post = await request.post()
 
             await send_mail(request.app,
                             sender='%s service <noreply@%s>' % (settings.BRAND, request.url.host),
