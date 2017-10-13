@@ -91,11 +91,10 @@ async def pre_dispatch(request, controller, actionName):
 
         if not getattr(action, 'csrf_disabled', False):
             check_ok = False
-            if request.content_type == 'multipart/form-data':
-                return
-            else:
+            token = request.headers.get(CSRF_HEADER_NAME)
+            if not token:
                 data = await request.post()
-            token = data.get(CSRF_FIELD_NAME, request.headers.get(CSRF_HEADER_NAME, ''))
+                token = data.get(CSRF_FIELD_NAME)
 
             if token:
                 if validate_token(token, await get_secret(request)):
