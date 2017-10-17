@@ -7,7 +7,8 @@ from aioweb.core.controller.decorators import CtlDecoratorDescriptor
 from aioweb.core.controller.serializers import make_serializer
 from aioweb.core.controller.strong_parameters import StrongParameters
 from aioweb.modules.session.flash import Flash
-from aioweb.util import extract_name_from_class, awaitable, PrivateData
+from aioweb.util import extract_name_from_class, awaitable, PrivateData, Injector
+
 
 
 class Controller(object):
@@ -16,9 +17,11 @@ class Controller(object):
 
     def __init__(self, request, router):
         self.app = request.app
+        self.have_session = 'session' in self.app.modules
         if hasattr(self.app, 'db'):
             self.db = self.app.db
         self.request = request
+        self.service = Injector(self.app, 'Service')
         self._private = PrivateData(
             search_path='',
             controller=extract_name_from_class(self.__class__.__name__, 'Controller'),
@@ -95,8 +98,9 @@ class Controller(object):
         self._private.template = os.path.join(self._private.search_path, self._private.controller,
                                               '%s.html' % actionName)
 
-        self._private.session = await get_session(self.request)
-        self._private.flash = Flash(self._private.session)
+        if self.have_session:
+            self._private.session = await get_session(self.request)
+            self._private.flash = Flash(self._private.session)
 
 
         # TODO: something better
@@ -116,14 +120,17 @@ class Controller(object):
         try:
             res = await awaitable(action())
         except web.HTTPException as e:
-            self._private.flash.sync()
+            if self.have_session:
+                self._private.flash.sync()
             raise e
         except Exception as e:
-            self._private.flash.sync()
+            if self.have_session:
+                self._private.flash.sync()
             raise web.HTTPInternalServerError()
 
         if isinstance(res, web.Response):
-            self._private.flash.sync()
+            if self.have_session:
+                self._private.flash.sync()
             return res
 
         if res is None:
@@ -143,5 +150,6 @@ class Controller(object):
         except AttributeError:
             pass
 
-        self._private.flash.sync()
+        if self.have_session:
+            self._private.flash.sync()
         return response

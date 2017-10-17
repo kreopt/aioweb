@@ -57,14 +57,16 @@ async def init_db(app):
                 setattr(app, 'db', DBPGWrapper(app['db_pool'], cursor=psycopg2.extras.RealDictCursor))
             elif default_conf.get('driver') == 'sqlite':
                 import aioodbc
-                app['db_pool'] = await aioodbc.create_pool("Database=".format(
+                app['db_pool'] = await aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
                     os.path.join(settings.BASE_DIR, 'db', default_conf.get('database', 'db.sqlite3'))))
                 setattr(app, 'db', DBWrapper(app['db_pool']))
                 # web_logger.warn("database path: %s" % db_conf['database'])
         # db = DatabaseManager(db_conf)
         # OratorModel.set_connection_resolver(db)
         if hasattr(app, 'db'):
-            Model.set_db(app.db)
+            setattr(Model,'db', app.db)
+        if hasattr(app, 'databases'):
+            setattr(Model,'databases', app.databases)
         # setattr(app, 'db', db)
 
 async def close_db(app):

@@ -7,4 +7,4 @@ class TestController(aioweb.core.Controller):
 
     async def index(self):
         # using service injector
-        return {'test': self.service.test1.action()}
+        return {'test': await self.service.test1.action(1,2,3)}

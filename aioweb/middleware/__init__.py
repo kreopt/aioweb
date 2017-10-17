@@ -15,7 +15,8 @@ PRE_DISPATCHERS = []
 async def setup_middlewares(app):
     app.middlewares.append(normalize_path_middleware(append_slash=True))
     app.middlewares.append(is_ajax)
-    app.middlewares.append(csrf_token)
+    if 'session' in app.modules:
+        app.middlewares.append(csrf_token)
     csrf_setup(app)
     PRE_DISPATCHERS.append(csrf_pre_dispatch)
 

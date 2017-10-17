@@ -1,5 +1,6 @@
 import importlib
 import os
+from pathlib import Path, PurePath
 
 import jinja2
 from collections import Mapping
@@ -83,15 +84,14 @@ async def setup(app):
     procs = [request_processor]
     # setup Jinja2 template renderer
     app_loaders = [
-        jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views_min/")),
-        jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")),
-        jinja2.PackageLoader("aioweb", "views/")
+        # jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views_min/")),
+        # jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")),
+        # jinja2.PackageLoader("aioweb", "views/")
     ]
-    for app_name in settings.APPS:
-        try:
-            app_loaders.append(jinja2.PackageLoader(app_name, "app/views"))
-        except ImportError as e:
-            pass
+    backend_dir = Path(os.path.join(settings.BASE_DIR, 'backends'))
+    if backend_dir.is_dir():
+        for backend in backend_dir.iterdir():
+            app_loaders.append(jinja2.FileSystemLoader(str(backend / Path("views/"))))
 
     env = jinja2.Environment(
         loader=jinja2.ChoiceLoader(app_loaders),

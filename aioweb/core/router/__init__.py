@@ -190,6 +190,27 @@ class Router(object):
     def delete(self, url, handler=None, name=None, **kwargs):
         return self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
 
+    def backend(self, path):
+        oldName = self._currentName
+        oldPrefix = self._currentPrefix
+        oldPackage = self._currentPackage
+        self._currentName = path
+        self._currentPrefix = ''
+        self._currentPackage = path
+        with self as subrouter:
+            try:
+                mod = importlib.import_module(f"{path}.router")
+                setup = getattr(mod, 'setup')
+                setup(subrouter)
+            except AttributeError:
+                web_logger.warn(f"no setup method in {path} router")
+            except ImportError as e:
+                web_logger.warn(f"no routes for app {path}")
+
+        self._currentName = oldName
+        self._currentPrefix = oldPrefix
+        self._currentPackage = oldPackage
+
     def resource(self, res_name, controller, prefix='', name=None, **kwargs):
 
         pref = '/'.join((prefix, res_name)).replace('///', '/').replace('//', '/')

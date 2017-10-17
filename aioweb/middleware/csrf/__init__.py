@@ -77,8 +77,9 @@ async def middleware(app, handler):
 
 
 def setup(app):
-    app[JINJA_APP_KEY].add_extension(CsrfTag)
-    app[JINJA_APP_KEY].add_extension(CsrfRawTag)
+    if 'template' in app.modules:
+        app[JINJA_APP_KEY].add_extension(CsrfTag)
+        app[JINJA_APP_KEY].add_extension(CsrfRawTag)
 
 
 async def pre_dispatch(request, controller, actionName):

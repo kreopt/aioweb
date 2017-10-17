@@ -1,4 +1,5 @@
 import asyncio
+import importlib
 import inspect
 import os
 import re
@@ -32,7 +33,7 @@ def import_controller(name, package=None):
         raise AssertionError('controller name should be string')
     ctrl_class_name = inflection.camelize("%s_controller" % name)
 
-    mod = importlib.import_module("%sapp.controllers.%s" % (("%s." % package) if package else '', name))
+    mod = importlib.import_module(f"""{f"{package}" if package else ""}.controllers.{name}""")
 
     ctrl_class = getattr(mod, ctrl_class_name)
 
@@ -46,3 +47,25 @@ class PrivateData(object):
         super().__init__()
         for arg in kwargs:
             setattr(self, arg, kwargs[arg])
+
+
+class Injector(object):
+    def __init__(self, app, class_name, package=None):
+        self.imported = {}
+        self.app = app
+        self.class_name = class_name
+        self.format_string = f"{'.' if package else ''}{inflection.pluralize(self.class_name.lower())}.{{name}}"
+        self.package = package
+
+    def inject(self, name):
+        imported = self.imported.get(name)
+        if not imported:
+            mod = importlib.import_module(self.format_string.format(name=name), package=self.package)
+            inject_class = getattr(mod, self.class_name)
+
+            imported = inject_class(self.app)
+            self.imported[name] = imported
+        return imported
+
+    def __getattr__(self, item):
+        return self.inject(item)

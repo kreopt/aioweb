@@ -5,14 +5,8 @@
     <title>Title</title>
 </head>
 <body>
-    <ul>
-        <li><a href="{% url 'test:page1.index' %}" data-ajaxpage-to="page_container">page1</a></li>
-        <li><a href="{% url 'test:page2.index' %}" data-ajaxpage-to="page_container">page2</a></li>
-    </ul>
     <section id="page_container">
         {% block content %}{% endblock %}
     </section>
-    <script src="{% static 'js/aioweb/util.js' %}"></script>
-    <script src="{% static 'js/aioweb/ajax.js' %}"></script>
 </body>
 </html>
