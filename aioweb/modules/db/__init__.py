@@ -30,39 +30,76 @@ def init_db_engine():
     #     OratorModel.get_connection_resolver().disconnect()
     #     OratorModel.set_connection_resolver(DatabaseManager(dbconfig))
 
+class DBFactory(object):
+    def __init__(self, config):
+        self.config = config
+        self.pools = {}
+
+    async def connection(self, connection=None):
+        if connection is None:
+            connection = self.config.get('default', 'development')
+
+        if connection in self.pools:
+            return self.pools[connection]
+
+        db_config = self.config[connection]
+        dbwrapper = None
+
+        if db_config.get('driver') == 'pgsql':
+            import aiopg
+            import psycopg2.extras
+            # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
+            host_info = []
+            if db_config.get('host'):
+                host_info.append('host = {}'.format(db_config.get('host')))
+            if db_config.get('port'):
+                host_info.append('port = {}'.format(db_config.get('port')))
+            pool = await aiopg.create_pool("dbname={} {} user={} password={}".format(
+                db_config.get('database'),
+                ' '.join(host_info),
+                db_config.get('user'),
+                db_config.get('password'),
+            ))
+            dbwrapper = DBPGWrapper(pool, cursor=psycopg2.extras.RealDictCursor)
+        elif db_config.get('driver') == 'sqlite':
+            import aioodbc
+            pool = await aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
+                os.path.join(settings.BASE_DIR, 'db', db_config.get('database', 'db.sqlite3'))))
+            dbwrapper = DBWrapper(pool)
+        self.pools[connection] = dbwrapper
+        return dbwrapper
+
+    async def close(self):
+        for pool in self.pools:
+            self.pools[pool].close()
+        for pool in self.pools:
+            await self.pools[pool].wait_closed()
+
+class DBConnection(object):
+    def __init__(self, app, factory):
+        self.app = app
+        self.factory = factory
+
+    def __getattr__(self, item):
+        conn = yield from self.factory.connection()
+        return getattr(conn, item)
+
+    def connection(self, name=None):
+        return self.factory.connection(name)
 
 async def init_db(app):
     db_conf = get_dbconfig()
 
     if not db_conf:
         raise ReferenceError('Database configuration does not contain databases domain')
+
+    setattr(app, 'dbfactory', DBFactory(db_conf))
+
     default_conf = db_conf.get(db_conf.get('default', 'development'))
     if not hasattr(app, 'db'):
         if isinstance(default_conf, dict):
-            if default_conf.get('driver') == 'pgsql':
-                import aiopg
-                import psycopg2.extras
-                # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
-                host_info = []
-                if default_conf.get('host'):
-                    host_info.append('host = {}'.format(default_conf.get('host')))
-                if default_conf.get('port'):
-                    host_info.append('port = {}'.format(default_conf.get('port')))
-                app['db_pool'] = await aiopg.create_pool("dbname={} {} user={} password={}".format(
-                    default_conf.get('database'),
-                    ' '.join(host_info),
-                    default_conf.get('user'),
-                    default_conf.get('password'),
-                ))
-                setattr(app, 'db', DBPGWrapper(app['db_pool'], cursor=psycopg2.extras.RealDictCursor))
-            elif default_conf.get('driver') == 'sqlite':
-                import aioodbc
-                app['db_pool'] = await aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
-                    os.path.join(settings.BASE_DIR, 'db', default_conf.get('database', 'db.sqlite3'))))
-                setattr(app, 'db', DBWrapper(app['db_pool']))
-                # web_logger.warn("database path: %s" % db_conf['database'])
-        # db = DatabaseManager(db_conf)
-        # OratorModel.set_connection_resolver(db)
+            setattr(app, 'db', await DBConnection(app, app.dbfactory).connection())
+
         if hasattr(app, 'db'):
             setattr(Model,'db', app.db)
         if hasattr(app, 'databases'):
@@ -74,6 +111,12 @@ async def close_db(app):
         try:
             app.db.close()
             await app.db.wait_closed()
+        except:
+            pass
+
+    if hasattr(app, 'dbfactory'):
+        try:
+            app.dbfactory.close()
         except:
             pass
 
