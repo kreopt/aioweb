@@ -106,17 +106,20 @@ def layout(template_name):
 ## Router
 ##
 
-def redirect_on_success(action_name, prefix=None, params=None):
+def redirect_on_success(action_name, by_name=None, params=None):
     def decorator(fn):
-        def decorated(self, *args, **kwargs):
+        async def decorated(self, *args, **kwargs):
             params_data = {}
             if params:
                 for param in params:
                     if params[param][0] == 'match':
                         params_data[param] = self.request.match_info[params[param][1]]
-            res = fn(self, *args, **kwargs)
+            res = await fn(self, *args, **kwargs)
             if not self.request.is_ajax():
-                return web.HTTPFound(self.path_for(action_name, prefix, params_data))
+                if by_name:
+                    return web.HTTPFound(self.router.resolve_named(action_name, params_data))
+                else:
+                    return web.HTTPFound(self.path_for(action_name, None, params_data))
             return res
 
         return decorated

@@ -106,7 +106,7 @@ class DBFn(object):
         self.db_wrapper = db_wrapper
         self.fn = fn
 
-    async def call(self, *args, **kwargs):
+    def call(self, *args, **kwargs):
         if len(args):
             formatted_args = ','.join(['?' for e in args])
             _args = args
@@ -118,21 +118,10 @@ class DBFn(object):
             _args = {}
 
         sql = 'select {}({}) r'.format(self.fn, formatted_args)
-        return await self.db_wrapper.first(sql, _args, column='r')
+        return self.db_wrapper.first(sql, _args, column='r')
 
     def __call__(self, *args, **kwargs):
-        if len(args):
-            formatted_args = ','.join(['?' for e in args])
-            _args = args
-        elif len(kwargs):
-            formatted_args = ','.join(['{}:=:{}'.format(k, k) for k in kwargs])
-            _args = kwargs
-        else:
-            formatted_args = ''
-            _args = {}
-
-        sql = 'select {}({})'.format(self.fn, formatted_args)
-        return self.db_wrapper.first(sql, _args).__await__()
+        return self.call(*args, **kwargs)
 
 
 class DBFnCaller(object):

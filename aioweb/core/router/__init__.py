@@ -71,8 +71,8 @@ class Router(object):
             self.app.controllers[ctrl_class_name].search_path = self.view_prefix
         return self.app.controllers[ctrl_class_name]
 
-    def resolve_named(self, name, *args, **kwargs):
-        return self.app.router[name].url_for(*args, **kwargs)
+    def resolve_named(self, name, kwargs):
+        return self.app.router[name].url_for(**kwargs)
 
     def resolve_action_url(self, controller, action_name, *args, **kwargs):
         return self.app.router["%s.%s" % (self._get_namespace(controller), action_name)].url_for(*args, **kwargs)
@@ -316,5 +316,6 @@ def make_route(*args, action=None):
 def setup_routes(app):
     from config import routes
     setattr(app, 'controllers', {})
+    setattr(app, 'base_router', Router(app))
 
-    routes.setup(Router(app))
+    routes.setup(app.base_router)

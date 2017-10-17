@@ -35,6 +35,10 @@ class Controller(object):
             setattr(self.__class__, 'LAYOUT', Controller.EMPTY_LAYOUT)
 
     def path_for(self, action, prefix=None, params={}):
+        # if prefix:
+        #     return self.app.base_router.resolve_action_url(self._private.controller if prefix is None else prefix, action,
+        #                                           **params)
+        # else:
         return self.router.resolve_action_url(self._private.controller if prefix is None else prefix, action, **params)
 
     def url_for(self, action, prefix=None, params={}):
