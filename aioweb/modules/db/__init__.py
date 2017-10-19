@@ -48,7 +48,7 @@ class DBFactory(object):
 
         if db_config.get('driver') == 'pgsql':
             import aiopg
-            import psycopg2.extras
+            from . import pg_extras
             # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
             host_info = []
             if db_config.get('host'):
@@ -61,7 +61,7 @@ class DBFactory(object):
                 db_config.get('user'),
                 db_config.get('password'),
             ))
-            dbwrapper = DBPGWrapper(pool, cursor=psycopg2.extras.NamedTupleCursor)
+            dbwrapper = DBPGWrapper(pool, cursor=pg_extras.PGDictNamedtupleCursor)
         elif db_config.get('driver') == 'sqlite':
             import aioodbc
             pool = aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
@@ -93,6 +93,9 @@ class DBConnection(object):
 
     def __call__(self, connection, *args, **kwargs):
         return self.get_wrapper(connection)
+
+
+
 
 
 async def init_db(app):
