@@ -1,3 +1,4 @@
+import asyncio
 import os
 
 import re
@@ -16,26 +17,26 @@ def get_dbconfig():
     dbconfig = conf.get('databases')
 
     environment = os.getenv("AIOWEB_ENV", dbconfig["default"])
-    dbconfig["default"] = environment
-    if dbconfig[environment]["driver"] == "sqlite":
-        dbconfig[environment]["database"] = os.path.join(settings.BASE_DIR,
-                                                         "db/{}".format(dbconfig[environment]["database"]))
+
+    for env in dbconfig:
+        if type(dbconfig[env]) == dict:
+            if dbconfig[env]["driver"] == "sqlite":
+                dbconfig[env]["database"] = os.path.join(settings.BASE_DIR, f'db/{dbconfig[env]["database"]}')
+
+    dbconfig['default'] = dbconfig[environment]
     return dbconfig
 
 
 def init_db_engine():
     dbconfig = get_dbconfig()
 
-    # if OratorModel.get_connection_resolver():
-    #     OratorModel.get_connection_resolver().disconnect()
-    #     OratorModel.set_connection_resolver(DatabaseManager(dbconfig))
 
 class DBFactory(object):
     def __init__(self, config):
         self.config = config
         self.pools = {}
 
-    async def connection(self, connection=None):
+    def connection(self, connection=None):
         if connection is None:
             connection = self.config.get('default', 'development')
 
@@ -54,16 +55,16 @@ class DBFactory(object):
                 host_info.append('host = {}'.format(db_config.get('host')))
             if db_config.get('port'):
                 host_info.append('port = {}'.format(db_config.get('port')))
-            pool = await aiopg.create_pool("dbname={} {} user={} password={}".format(
+            pool = aiopg.create_pool("dbname={} {} user={} password={}".format(
                 db_config.get('database'),
                 ' '.join(host_info),
                 db_config.get('user'),
                 db_config.get('password'),
             ))
-            dbwrapper = DBPGWrapper(pool, cursor=psycopg2.extras.RealDictCursor)
+            dbwrapper = DBPGWrapper(pool, cursor=psycopg2.extras.NamedTupleCursor)
         elif db_config.get('driver') == 'sqlite':
             import aioodbc
-            pool = await aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
+            pool = aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
                 os.path.join(settings.BASE_DIR, 'db', db_config.get('database', 'db.sqlite3'))))
             dbwrapper = DBWrapper(pool)
         self.pools[connection] = dbwrapper
@@ -75,17 +76,24 @@ class DBFactory(object):
         for pool in self.pools:
             await self.pools[pool].wait_closed()
 
+
 class DBConnection(object):
-    def __init__(self, app, factory):
-        self.app = app
+    def __init__(self, factory, default='default'):
         self.factory = factory
+        self.default_connection = default
+        self.wrappers = {}
+
+    def get_wrapper(self, connection):
+        if connection in self.wrappers:
+            return self.wrappers[connection]
+        return self.factory.connection(connection)
 
     def __getattr__(self, item):
-        conn = yield from self.factory.connection()
-        return getattr(conn, item)
+        return getattr(self.get_wrapper(self.default_connection), item)
 
-    def connection(self, name=None):
-        return self.factory.connection(name)
+    def __call__(self, connection, *args, **kwargs):
+        return self.get_wrapper(connection)
+
 
 async def init_db(app):
     db_conf = get_dbconfig()
@@ -93,18 +101,11 @@ async def init_db(app):
     if not db_conf:
         raise ReferenceError('Database configuration does not contain databases domain')
 
-    setattr(app, 'dbfactory', DBFactory(db_conf))
-
-    default_conf = db_conf.get(db_conf.get('default', 'development'))
     if not hasattr(app, 'db'):
-        if isinstance(default_conf, dict):
-            setattr(app, 'db', await DBConnection(app, app.dbfactory).connection())
-
-        if hasattr(app, 'db'):
-            setattr(Model,'db', app.db)
-        if hasattr(app, 'databases'):
-            setattr(Model,'databases', app.databases)
+        setattr(app, 'db', DBConnection(DBFactory(db_conf)))
+        setattr(Model, 'db', app.db)
         # setattr(app, 'db', db)
+
 
 async def close_db(app):
     if hasattr(app, 'db'):
@@ -188,12 +189,19 @@ class DBWrapper(object):
     def _get_cursor(self, conn):
         return conn.cursor()
 
+    async def await_pool(self):
+        if asyncio.iscoroutine(self.pool):
+            self.pool = await self.pool
+        return self.pool
+
     async def execute(self, sql, bindings=tuple()):
+        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
 
     async def query(self, sql, bindings=tuple()):
+        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
@@ -201,21 +209,29 @@ class DBWrapper(object):
                 return r if r else []
 
     async def first(self, sql, bindings=tuple(), column=None):
+        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
                 res = await cur.fetchone()
                 if res and column:
-                    return res[column]
+                    if type(column) == str:
+                        return getattr(res, column)
+                    else:
+                        return res[column]
                 return res
 
     async def call(self, sql, bindings=tuple(), column=None):
+        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
                 res = await cur.fetchone()
-                if column:
-                    return res[column]
+                if res and column:
+                    if type(column) == str:
+                        return getattr(res, column)
+                    else:
+                        return res[column]
                 return res
 
 

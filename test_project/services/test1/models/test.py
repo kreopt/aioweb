@@ -2,8 +2,9 @@ import aioweb
 
 
 class Model(aioweb.core.Model):
-    __database__ = 'default'
 
-    def action(self):
-        # self.db.connection('test').first('select 1 as val', column=0)
-        return self.db.first('select 1 as val', column=0)
+    async def action(self):
+        return {
+            'test': await self.db('test').first('select id from test', column='id'),
+            'default': await self.db.first('select id from test', column='id')
+        }
