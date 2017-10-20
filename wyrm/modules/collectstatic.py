@@ -41,8 +41,8 @@ def collectstatic(src_dir, dst_dir, ignore=None, overwrite=True):
 
 
 def execute(argv, argv0, engine):
-    import lib, importlib, re
-    import code
+    # import lib, importlib, re
+    # import code
     os.environ.setdefault("AIOWEB_SETTINGS_MODULE", "settings")
     from aioweb import settings
     sys.path.append(settings.BASE_DIR)
@@ -62,15 +62,21 @@ def execute(argv, argv0, engine):
         else:
             os.makedirs(DEST_DIR)
 
-        path = os.path.join(settings.BASE_DIR, 'app', 'assets')
-        if os.path.exists(path):
-            recursive_overwrite(path, DEST_DIR)
-        for appName in settings.APPS:
-            try:
-                path = os.path.join(os.path.dirname(importlib.util.find_spec(appName).origin), 'assets')
-                if os.path.exists(path):
-                    print("collecting %s" % path)
-                    recursive_overwrite(path, DEST_DIR)
-            except ImportError as exc:
-                # traceback.print_exc()
-                print("no such module: %s" % appName)
+        path = os.path.join(settings.BASE_DIR, 'backends')
+
+        if os.path.isdir(path):
+            backends = os.listdir(path)
+            for backend_name in backends:
+                asset_dir = os.path.join(path, backend_name, 'assets')
+                if os.path.exists(asset_dir):
+                    recursive_overwrite(asset_dir, os.path.join(DEST_DIR, backend_name))
+
+        # for appName in settings.APPS:
+        #     try:
+        #         path = os.path.join(os.path.dirname(importlib.util.find_spec(appName).origin), 'assets')
+        #         if os.path.exists(path):
+        #             print("collecting %s" % path)
+        #             recursive_overwrite(path, DEST_DIR)
+        #     except ImportError as exc:
+        #         # traceback.print_exc()
+        #         print("no such module: %s" % appName)
