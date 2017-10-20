@@ -117,8 +117,22 @@ class DBFn(object):
             formatted_args = ''
             _args = {}
 
-        sql = 'select {}({}) r'.format(self.fn, formatted_args)
-        return self.db_wrapper.first(sql, _args, column='r')
+        sql = f"select {self.fn}({formatted_args}) r"
+        return self.db_wrapper.first(sql, _args, column='r' )
+
+    def call_rec(self, return_sig, *args, **kwargs):
+        if len(args):
+            formatted_args = ','.join(['?' for e in args])
+            _args = args
+        elif len(kwargs):
+            formatted_args = ','.join(['{}:=:{}'.format(k, k) for k in kwargs])
+            _args = kwargs
+        else:
+            formatted_args = ''
+            _args = {}
+
+        sql = f"select * from {self.fn}({formatted_args}) as {return_sig}"
+        return self.db_wrapper.first(sql, _args)
 
     def __call__(self, *args, **kwargs):
         return self.call(*args, **kwargs)

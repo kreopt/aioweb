@@ -47,6 +47,11 @@ class Controller(object):
                                  ":%s" % self.request.url.port if self.request.url.port != 80 else "",
                                  self.path_for(action, prefix, params=params))
 
+    async def params_typesafe(self, args):
+        if self._private.parameters is None:
+            self._private.parameters = (await StrongParameters().parse(self.request, parse_body=True)).with_routes(self.request)
+        return self._private.parameters.typesafe(args) if args else self._private.parameters
+
     async def params(self, *args, parse_body=True, require=True):
         if self._private.parameters is None:
             self._private.parameters = (await StrongParameters().parse(self.request, parse_body=parse_body)).with_routes(self.request)
