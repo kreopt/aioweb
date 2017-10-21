@@ -58,14 +58,13 @@ class Injector(object):
         self.package = package
 
     def inject(self, name):
-        imported = self.imported.get(name)
-        if not imported:
+        inject_class = self.imported.get(name)
+        if not inject_class:
             mod = importlib.import_module(self.format_string.format(name=name), package=self.package)
-            inject_class = getattr(mod, self.class_name)
+            inject_class = getattr(mod, inflection.camelize(f'{name.lower()}_{self.class_name}'))
+            self.imported[name] = inject_class
 
-            imported = inject_class(self.app)
-            self.imported[name] = imported
-        return imported
+        return inject_class(self.app)
 
     def __getattr__(self, item):
         return self.inject(item)

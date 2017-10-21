@@ -23,9 +23,9 @@ class Router(object):
         self.view_prefix = ''
         self.preDispatchers = pre_dispatchers
         self.routers = []
-        self._currentPrefix = ''
-        self._currentName = ''
-        self._currentPackage = ''
+        self._currentPrefix = prefix
+        self._currentName = name
+        self._currentPackage = package
 
     # TODO: move to config
     def set_view_prefix(self, prefix):
