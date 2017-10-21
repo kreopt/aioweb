@@ -1,4 +1,4 @@
-import random
+import warnings
 from datetime import datetime
 from urllib.parse import urljoin
 
@@ -123,13 +123,23 @@ class DjangoUrl(Extension):
     def _url(self, path):
         return self.environment.globals['url'](path)
 
-    def _url_reverse(self, name, *args, **kwargs):
+    def _url_reverse(self, controller, name, *args, **kwargs):
         if 'query_' in kwargs:
             query = kwargs.pop('query_')
         else:
             query = None
 
-        url = self.environment.globals['app'].router[name].url_for(**kwargs)
+        try:
+            backend_name = controller.router.name
+        except:
+            backend_name = ''
+        router = self.environment.globals['app'].router
+        try:
+            url = router.get(f'{backend_name}:{name}', router.get(name)).url_for(**kwargs)
+        except:
+            warnings.warn(f'Failed to reverse url {name} with {len(args)} args and {len(kwargs)} kwargs')
+            return '#'
+
         if query:
             url = url.with_query(query)
 
@@ -196,6 +206,7 @@ class DjangoUrl(Extension):
         if args is None:
             args = []
         args.insert(0, view_name)
+        args.insert(0, nodes.Name('controller', 'load', lineno=lineno))
 
         if kwargs is not None:
             kwargs = [nodes.Keyword(key, val) for key, val in kwargs.items()]

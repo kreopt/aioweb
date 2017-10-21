@@ -8,9 +8,9 @@ TEMPLATE_BACKEND = 'jinja2'
 ADMINS = []
 MODULES = [
     'db',
-    'session',
+    # 'session',
     'template',
-    'email'
+    # 'email'
 ]
 APPS = []
 MIDDLEWARES = [
