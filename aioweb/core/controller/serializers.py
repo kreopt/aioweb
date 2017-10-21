@@ -38,7 +38,7 @@ class TemplateSerializer(BaseSerializer):
 
     def serialize(self, data):
         try:
-            template.get_env(self.controller.request.app).globals['controller'] = self.controller
+            data.update({'controller': self.controller})
             return template.render(self.controller._private.template, self.controller.request, data)
         except web.HTTPInternalServerError as e:
             if self.controller.request.is_ajax():
