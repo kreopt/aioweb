@@ -17,7 +17,7 @@ class Or(list):
         self.extend(args)
 
 
-_primitive = (str, bytes, int, float, bool)
+_primitive = (str, bytes, int, float)
 
 
 class TypeCheckResult(object):
@@ -33,6 +33,13 @@ def convert_type(obj: Any,
             return TypeCheckResult(True, candidate_type(obj))
         except:
             return TypeCheckResult()
+
+    if candidate_type == bool:
+        try:
+            intval = int(obj)
+        except ValueError:
+            intval = 0
+        return TypeCheckResult(True, (obj in ('t', 'true')) or (intval > 0))
 
     # Any accepts everything
     if type(candidate_type) == type(Any):
