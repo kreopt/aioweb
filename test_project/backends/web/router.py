@@ -1,2 +1,2 @@
 def setup(router):
-    router.root('test#index')
+    router.root('test#index', name='index')
