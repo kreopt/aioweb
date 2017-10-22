@@ -41,17 +41,13 @@ async def mail_traceback(request):
             print(trace)
 
 
-async def middleware(app, handler):
-    async def middleware_handler(request):
-        try:
-            return await awaitable(handler(request))
-        except (web.HTTPClientError, web.HTTPRedirection) as e:
-            raise e
-        except web.HTTPServerError as e:
-            await mail_traceback(request)
-            raise e
-        except Exception as e:
-            await mail_traceback(request)
-            raise e
+@web.middleware
+async def error_mailer_middleware(request, handler):
+    try:
+        return await awaitable(handler(request))
+    except (web.HTTPClientError, web.HTTPRedirection) as e:
+        raise e
+    except Exception as e:
+        await mail_traceback(request)
+        raise e
 
-    return middleware_handler

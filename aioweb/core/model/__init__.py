@@ -12,3 +12,4 @@ class Model(object):
     def __call__(self, *args, **kwargs):
         for k, v in kwargs.items():
             setattr(self, k, v)
+        return self

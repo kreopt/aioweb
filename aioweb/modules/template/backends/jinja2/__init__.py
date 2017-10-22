@@ -17,15 +17,12 @@ APP_CONTEXT_PROCESSORS_KEY = 'aioweb_jinja2_context_processors'
 APP_KEY = 'aioweb_jinja2_environment'
 REQUEST_CONTEXT_KEY = 'aioweb_jinja2_context'
 
-
-async def context_processors_middleware(app, handler):
-    async def middleware(request):
-        request[REQUEST_CONTEXT_KEY] = {}
-        for processor in app[APP_CONTEXT_PROCESSORS_KEY]:
-            request[REQUEST_CONTEXT_KEY].update(await processor(request))
-        return await handler(request)
-
-    return middleware
+@web.middleware
+async def context_processors_middleware(request, handler):
+    request[REQUEST_CONTEXT_KEY] = {}
+    for processor in request.app[APP_CONTEXT_PROCESSORS_KEY]:
+        request[REQUEST_CONTEXT_KEY].update(await processor(request))
+    return await handler(request)
 
 
 async def request_processor(request):

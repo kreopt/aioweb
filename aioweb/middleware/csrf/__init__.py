@@ -61,19 +61,18 @@ def validate_token(token, secret):
     return token == make_token(salt, secret)
 
 
-async def middleware(app, handler):
-    async def middleware_handler(request):
 
-        setattr(request, 'csrf_token', await get_token(request))
+@web.middleware
+async def csrf_middleware(request, handler):
 
-        try:
-            response = await awaitable(handler(request))
-        except web.HTTPException as e:
-            raise e
+    setattr(request, 'csrf_token', await get_token(request))
 
-        return response
+    try:
+        response = await awaitable(handler(request))
+    except web.HTTPException as e:
+        raise e
 
-    return middleware_handler
+    return response
 
 
 def setup(app):
