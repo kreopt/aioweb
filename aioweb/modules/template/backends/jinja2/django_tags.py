@@ -1,3 +1,4 @@
+import traceback
 import warnings
 from datetime import datetime
 from urllib.parse import urljoin
@@ -136,8 +137,9 @@ class DjangoUrl(Extension):
         router = self.environment.globals['app'].router
         try:
             url = router.get(f'{backend_name}:{name}', router.get(name)).url_for(**kwargs)
-        except:
+        except Exception as e:
             warnings.warn(f'Failed to reverse url {name} with {len(args)} args and {len(kwargs)} kwargs')
+            traceback.print_exc()
             return '#'
 
         if query:

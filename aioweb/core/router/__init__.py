@@ -168,8 +168,8 @@ class Router(object):
         except Exception as e:
             web_logger.warn("invalid route: %s [%s]. skip\nreason: %s" % (url, name if name else gen_name, e))
 
-        self._currentName = self._get_namespace(name if name else gen_name)
-        self._currentPrefix = url
+        # self._currentName = self._get_namespace(name if name else gen_name)
+        # self._currentPrefix = url
         return self
 
     def head(self, url, handler=None, name=None, **kwargs):
