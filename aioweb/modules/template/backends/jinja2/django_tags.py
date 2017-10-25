@@ -131,7 +131,7 @@ class DjangoUrl(Extension):
             query = None
 
         try:
-            backend_name = controller.router.name
+            backend_name = controller.router.backendName
         except:
             backend_name = ''
         router = self.environment.globals['app'].router

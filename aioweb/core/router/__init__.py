@@ -14,9 +14,10 @@ from aioweb.core.controller.decorators import CtlDecoratorDescriptor
 from aioweb.core.controller.serializers import make_serializer
 
 class Router(object):
-    def __init__(self, app, name='', prefix='', parent=None, package=None, pre_dispatchers=tuple()):
+    def __init__(self, app, name='', prefix='', backend='', parent=None, package=None, pre_dispatchers=tuple()):
         self.app = app
         self.name = name
+        self.backendName = backend
         self.prefix = prefix
         self.parent = parent
         self.package = package
@@ -26,6 +27,7 @@ class Router(object):
         self._currentPrefix = prefix
         self._currentName = name
         self._currentPackage = package
+        self._currentBackend = backend
 
     # TODO: move to config
     def set_view_prefix(self, prefix):
@@ -194,9 +196,11 @@ class Router(object):
         oldName = self._currentName
         oldPrefix = self._currentPrefix
         oldPackage = self._currentPackage
+        oldBackend = self._currentBackend
         self._currentName = path
         self._currentPrefix = ''
         self._currentPackage = path
+        self._currentBackend = path
         with self as subrouter:
             try:
                 mod = importlib.import_module(f"{path}.router")
@@ -210,6 +214,7 @@ class Router(object):
         self._currentName = oldName
         self._currentPrefix = oldPrefix
         self._currentPackage = oldPackage
+        self._currentBackend = oldBackend
 
     def resource(self, res_name, controller, prefix='', name=None, **kwargs):
 
@@ -247,9 +252,9 @@ class Router(object):
             self._add_route(hdrs.METH_DELETE, '%s/{id:[0-9]+}/delete/' % pref, handler, name=rname)
             self._add_route(hdrs.METH_POST, '%s/{id:[0-9]+}/delete/' % pref, handler, name="%s_" % rname)
 
-        self._currentName = name
-        self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
-        self._currentPackage = self.package
+        # self._currentName = name
+        # self._currentPrefix = self._get_baseurl("%s/{id:[0-9]+}/" % pref)
+        # self._currentPackage = self.package
         return self
 
     def root(self, handler, name=None, **kwargs):
@@ -277,6 +282,7 @@ class Router(object):
         subrouter = Router(self.app, prefix=self._currentPrefix,
                            name=self._currentName,
                            package=self._currentPackage,
+                           backend=self._currentBackend,
                            pre_dispatchers=checks)
         self.routers.append(subrouter)
         return subrouter
