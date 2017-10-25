@@ -43,7 +43,7 @@ class AioWebTestCase(unittest.TestCase):
     def init_server(self):
         self.app = aioweb.Application(loop=self.loop)
         self.loop.run_until_complete(self.app.setup())
-        self.client = aiohttp.test_utils.TestClient(self.app, loop=self.loop)
+        self.client = aiohttp.test_utils.TestClient(aiohttp.test_utils.TestServer(self.app), loop=self.loop)
 
     def setUp(self):
         if self.refresh_db_before_test:
