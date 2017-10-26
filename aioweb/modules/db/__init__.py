@@ -13,17 +13,18 @@ from aioweb.conf import settings
 from aioweb.core.model import Model
 
 def get_dbconfig():
-    conf = ConfigReader('config/database.yml')
-    dbconfig = conf.get('databases')
+    environment = os.getenv("AIOWEB_ENV", 'development')
 
-    environment = os.getenv("AIOWEB_ENV", dbconfig["default"])
+    conf = ConfigReader(f'config/database/{environment}.yml')
+    dbconfig = conf.get('databases')
 
     for env in dbconfig:
         if type(dbconfig[env]) == dict:
             if dbconfig[env]["driver"] == "sqlite":
                 dbconfig[env]["database"] = os.path.join(settings.BASE_DIR, f'db/{dbconfig[env]["database"]}')
 
-    dbconfig['default'] = dbconfig[environment]
+    if not 'default' in dbconfig:
+        dbconfig['default'] = dbconfig[environment]
     return dbconfig
 
 

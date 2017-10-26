@@ -26,9 +26,12 @@ class AioWebTestCase(unittest.TestCase):
         if self.start_server:
             self.init_server()
 
-    def __del__(self):
-        self.loop.run_until_complete(self.app.shutdown())
-        self.loop.run_until_complete(self.app.cleanup())
+        self.addCleanup(self.cleanup)
+
+    def cleanup(self):
+        if self.app:
+            self.loop.run_until_complete(self.app.shutdown())
+            self.loop.run_until_complete(self.app.cleanup())
         self.loop.close()
 
     def __setitem__(self, key, value):
