@@ -37,7 +37,7 @@ def convert_type(obj: Any,
     if candidate_type == bool:
         try:
             intval = int(obj)
-        except ValueError:
+        except (ValueError, TypeError):
             intval = 0
         return TypeCheckResult(True, (obj in ('t', 'true')) or (intval > 0))
 

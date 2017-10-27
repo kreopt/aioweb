@@ -6,7 +6,6 @@ import inflection
 from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
-from aioweb.middleware import PRE_DISPATCHERS
 from aioweb.util import extract_name_from_class, awaitable, import_controller
 from aioweb.core.model import Model
 from .mutidirstatic import StaticMultidirResource
@@ -128,7 +127,7 @@ class Router(object):
             serializer.raiseIfNotAllowed()
 
             # TODO: something better
-            for preDispatcher in PRE_DISPATCHERS:
+            for preDispatcher in self.app['PRE_DISPATCHERS']:
                 if callable(preDispatcher):
                     await awaitable(preDispatcher(request, ctrl_instance, action_name))
 

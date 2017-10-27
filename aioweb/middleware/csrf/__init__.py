@@ -21,6 +21,7 @@ CSRF_SALT_LENGTH = 6
 CSRF_ALLOWED_CHARS = string.ascii_letters + string.digits
 CSRF_TOKEN_SEPARATOR = '-'
 
+
 def generate_csrf_secret():
     return ''.join([random.choice(CSRF_ALLOWED_CHARS) for c in range(CSRF_LENGTH)])
 
@@ -44,6 +45,7 @@ def make_token(salt, secret):
     return "{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR,
                            sha256("{}{}{}".format(salt, CSRF_TOKEN_SEPARATOR, secret).encode()).hexdigest())
 
+
 async def get_token(request):
     salt = generate_salt()
     secret = await get_secret(request)
@@ -61,10 +63,8 @@ def validate_token(token, secret):
     return token == make_token(salt, secret)
 
 
-
 @web.middleware
 async def csrf_middleware(request, handler):
-
     setattr(request, 'csrf_token', await get_token(request))
 
     try:
@@ -85,8 +85,7 @@ async def pre_dispatch(request, controller, actionName):
     reason = None
 
     check_ok = True
-    if request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
-
+    if 'X-Auth-Token' not in request.headers and request.method not in ('GET', 'HEAD', 'OPTIONS', 'TRACE'):
         action = getattr(controller, actionName)
 
         if not getattr(action, 'csrf_disabled', False):

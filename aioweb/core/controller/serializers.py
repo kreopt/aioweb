@@ -1,4 +1,5 @@
 import re
+import simplejson
 
 from aiohttp import web
 from aioweb.modules import template
@@ -30,7 +31,7 @@ class JsonSerializer(BaseSerializer):
     CONTENT_TYPES = ["application/json"]
 
     async def serialize(self, data):
-        return web.json_response(data)
+        return web.json_response(data, dumps=simplejson.dumps)
 
 
 class TemplateSerializer(BaseSerializer):
