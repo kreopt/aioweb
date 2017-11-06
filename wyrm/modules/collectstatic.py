@@ -62,7 +62,7 @@ def execute(argv, argv0, engine):
         else:
             os.makedirs(DEST_DIR)
 
-        path = os.path.join(settings.BASE_DIR, 'backends')
+        path = os.path.join(settings.BASE_DIR, 'app/backends')
 
         if os.path.isdir(path):
             backends = os.listdir(path)

@@ -85,7 +85,7 @@ async def setup(app):
         # jinja2.FileSystemLoader(os.path.join(settings.BASE_DIR, "app/views/")),
         # jinja2.PackageLoader("aioweb", "views/")
     ]
-    backend_dir = Path(os.path.join(settings.BASE_DIR, 'backends'))
+    backend_dir = Path(os.path.join(settings.BASE_DIR, 'app/backends'))
     if backend_dir.is_dir():
         for backend in backend_dir.iterdir():
             if backend.is_dir():
