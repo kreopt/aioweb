@@ -119,12 +119,6 @@ async def close_db(app):
         except:
             pass
 
-    if hasattr(app, 'dbfactory'):
-        try:
-            app.dbfactory.close()
-        except:
-            pass
-
 
 # async def db_to_request(app, handler):
 #     async def middleware_handler(request):
@@ -140,15 +134,11 @@ async def close_db(app):
 
 async def setup(app):
     # create connection to the database
-    app.on_startup.append(init_db)
+    # app.on_startup.append(init_db)
+    # app.on_shutdown.append(close_db)
     # shutdown db connection on exit
     # app.middlewares.append(db_to_request)
-
-
-async def shutdown(app):
-    if app.get('db_pool'):
-        app['db_pool'].close()
-        await app['db_pool'].wait_closed()
+    pass
 
 
 class DBFn(object):

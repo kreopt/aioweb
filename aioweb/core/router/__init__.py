@@ -191,13 +191,13 @@ class Router(object):
     def delete(self, url, handler=None, name=None, **kwargs):
         return self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
 
-    def backend(self, path):
+    def backend(self, path, prefix=''):
         oldName = self._currentName
         oldPrefix = self._currentPrefix
         oldPackage = self._currentPackage
         oldBackend = self._currentBackend
         self._currentName = path
-        self._currentPrefix = ''
+        self._currentPrefix = self._get_baseurl(prefix)
         self._currentPackage = path
         self._currentBackend = path
         with self as subrouter:

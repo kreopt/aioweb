@@ -21,7 +21,7 @@ class AioWebTestCase(unittest.TestCase):
         asyncio.set_event_loop(None)
         self._priv={}
 
-        self.loop.run_until_complete(init_db(self))
+        # self.loop.run_until_complete(init_db(self))
 
         if self.start_server:
             self.init_server()
