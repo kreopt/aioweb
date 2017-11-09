@@ -138,23 +138,25 @@ class Controller(object):
                 self._private.flash.sync()
             return res
 
-        if res is None:
-            res = {}
-        res.update(beforeActionRes)
+        if not isinstance(res, web.WebSocketResponse):
+            if res is None:
+                res = {}
+            res.update(beforeActionRes)
 
-        response = await self.request.serializer.serialize(res)
+            response = await self.request.serializer.serialize(res)
 
-        try:
-            headers = getattr(self.__class__, '__HEADERS')
-            for name in headers:
-                descriptior = headers[name]
-                if actionName not in descriptior[CtlDecoratorDescriptor.EXCEPT] and \
-                        (actionName in descriptior[CtlDecoratorDescriptor.ONLY] or
-                                 len(descriptior[CtlDecoratorDescriptor.ONLY]) == 0):
-                    response.headers[name] = descriptior[CtlDecoratorDescriptor.VAL]
-        except AttributeError:
-            pass
+            try:
+                headers = getattr(self.__class__, '__HEADERS')
+                for name in headers:
+                    descriptior = headers[name]
+                    if actionName not in descriptior[CtlDecoratorDescriptor.EXCEPT] and \
+                            (actionName in descriptior[CtlDecoratorDescriptor.ONLY] or
+                                     len(descriptior[CtlDecoratorDescriptor.ONLY]) == 0):
+                        response.headers[name] = descriptior[CtlDecoratorDescriptor.VAL]
+            except AttributeError:
+                pass
 
-        if self.have_session:
-            self._private.flash.sync()
-        return response
+            if self.have_session:
+                self._private.flash.sync()
+            return response
+        return res
