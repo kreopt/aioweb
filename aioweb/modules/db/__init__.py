@@ -4,6 +4,9 @@ import os
 import re
 
 # from orator import DatabaseManager
+import typing
+
+import simplejson
 
 from aioweb import ConfigReader
 from aioweb.conf import settings
@@ -33,9 +36,10 @@ def init_db_engine():
 
 
 class DBFactory(object):
-    def __init__(self, config):
+    def __init__(self, config, loop=None):
         self.config = config
         self.pools = {}
+        self.loop = loop
 
     def connection(self, connection=None):
         if connection is None:
@@ -48,7 +52,8 @@ class DBFactory(object):
         dbwrapper = None
 
         if db_config.get('driver') == 'pgsql':
-            import aiopg
+            # import aiopg
+            import asyncpg
             from . import pg_extras
             # dbname=aiopg user=aiopg password=passwd host=127.0.0.1
             host_info = []
@@ -56,13 +61,16 @@ class DBFactory(object):
                 host_info.append('host = {}'.format(db_config.get('host')))
             if db_config.get('port'):
                 host_info.append('port = {}'.format(db_config.get('port')))
-            pool = aiopg.create_pool("dbname={} {} user={} password={}".format(
-                db_config.get('database'),
-                ' '.join(host_info),
-                db_config.get('user'),
-                db_config.get('password'),
-            ))
-            dbwrapper = DBPGWrapper(pool, cursor=pg_extras.PGDictNamedtupleCursor)
+            pool = asyncpg.create_pool(
+                loop=self.loop,
+                host=db_config.get('host'),
+                port=db_config.get('port'),
+                database=db_config.get('database'),
+                user=db_config.get('user'),
+                password=db_config.get('password'),
+            )
+
+            dbwrapper = DBPGWrapper(pool)
         elif db_config.get('driver') == 'sqlite':
             import aioodbc
             pool = aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
@@ -106,7 +114,7 @@ async def init_db(app):
         raise ReferenceError('Database configuration does not contain databases domain')
 
     if not hasattr(app, 'db'):
-        setattr(app, 'db', DBConnection(DBFactory(db_conf)))
+        setattr(app, 'db', DBConnection(DBFactory(db_conf, loop=app.loop)))
         setattr(Model, 'db', app.db)
         # setattr(app, 'db', db)
 
@@ -205,7 +213,7 @@ class DBWrapper(object):
         self.pool = pool
         self.fn = DBFnCaller(self)
 
-    def _prepare_sql(self, sql):
+    def _prepare_sql(self, sql, bindings=None):
         return sql
 
     def _get_cursor(self, conn):
@@ -259,12 +267,74 @@ class DBWrapper(object):
 
 class DBPGWrapper(DBWrapper):
 
-    def __init__(self, pool, cursor=None):
+    def __init__(self, pool):
         super().__init__(pool)
-        self.cursor_type = cursor
 
-    def _get_cursor(self, conn):
-        return conn.cursor(cursor_factory=self.cursor_type)
+    async def await_pool(self):
+        # if asyncio.iscoroutine(self.pool):
+        #     self.pool = \
+        await self.pool
+        return self.pool
 
-    def _prepare_sql(self, sql):
-        return re.sub(':([a-zA-Z_][a-zA-Z_0-9]*)', '%(\\1)s', sql.replace('?', '%s'))
+    async def _set_type_conversion(self, conn):
+        def _encoder(value):
+            return simplejson.dumps(value)
+
+        def _decoder(value):
+            return simplejson.loads(value)
+
+        await conn.set_type_codec(
+            'json', encoder=_encoder, decoder=_decoder, schema='pg_catalog'
+        )
+        await conn.set_type_codec(
+            'jsonb', encoder=_encoder, decoder=_decoder, schema='pg_catalog'
+        )
+
+    async def execute(self, sql, bindings=tuple()):
+        await self.await_pool()
+        async with self.pool.acquire() as conn:
+            await self._set_type_conversion(conn)
+            await conn.execute(*self._prepare_sql(sql, bindings))
+
+    async def query(self, sql, bindings=tuple()):
+        await self.await_pool()
+        async with self.pool.acquire() as conn:
+            await self._set_type_conversion(conn)
+            r = await conn.fetch(*self._prepare_sql(sql, bindings))
+            return r if r else []
+
+    async def first(self, sql, bindings=tuple(), column=None):
+        await self.await_pool()
+        async with self.pool.acquire() as conn:
+            await self._set_type_conversion(conn)
+            if type(column) == int:
+                res = await conn.fetchval(*self._prepare_sql(sql, bindings), column=column)
+            else:
+                res = await conn.fetchrow(*self._prepare_sql(sql, bindings))
+                if res and column and column in res:
+                    return res[column]
+            return res
+
+    def call(self, sql, bindings=tuple(), column=None):
+        return self.first(sql, bindings, column=column)
+
+    def _prepare_sql(self, sql, bindings: typing.Union[tuple, dict]=tuple()):
+        if type(bindings) == dict:
+            new_bindings = []
+            last_sql = sql
+            i = 1
+            for k in sorted(bindings.keys()):
+                sql = sql.replace(f':{k}', f'${i}')
+                if last_sql != sql:
+                    i += 1
+                    new_bindings.append(bindings[k])
+                    last_sql = sql
+        else:
+            new_bindings = bindings
+        return [sql, *new_bindings]
+
+
+    def _flatten_bindings(self, bindings):
+        if type(bindings) == dict:
+            return [bindings[k] for k in sorted(bindings.keys())]
+        return bindings

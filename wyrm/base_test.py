@@ -1,7 +1,8 @@
 import unittest
 import asyncio
 
-from aioweb.modules.db import init_db
+import uvloop
+# asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
 
 import aioweb
 import aiohttp.test_utils
@@ -17,8 +18,9 @@ class AioWebTestCase(unittest.TestCase):
 
     def __init__(self, methodName='runTest'):
         super().__init__(methodName)
+        asyncio.set_event_loop_policy(uvloop.EventLoopPolicy())
         self.loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(None)
+        # asyncio.set_event_loop(None)
         self._priv={}
 
         # self.loop.run_until_complete(init_db(self))

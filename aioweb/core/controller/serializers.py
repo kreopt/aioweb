@@ -3,7 +3,16 @@ import simplejson
 
 from aiohttp import web
 from aioweb.modules import template
+import asyncpg
 
+# TODO: move to di
+def encode_complex(obj):
+     if isinstance(obj, asyncpg.Record):
+         return dict(obj)
+     raise TypeError(repr(obj) + " is not JSON serializable")
+
+def json_encoder(obj):
+    return simplejson.dumps(obj, default=encode_complex)
 
 class BaseSerializer(object):
     CONTENT_TYPES = ["*"]
@@ -31,7 +40,7 @@ class JsonSerializer(BaseSerializer):
     CONTENT_TYPES = ["application/json"]
 
     async def serialize(self, data):
-        return web.json_response(data, dumps=simplejson.dumps)
+        return web.json_response(data, dumps=json_encoder)
 
 
 class TemplateSerializer(BaseSerializer):
