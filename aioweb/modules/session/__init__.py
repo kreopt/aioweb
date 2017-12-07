@@ -1,4 +1,5 @@
 import importlib
+import traceback
 
 from aiohttp.log import web_logger
 from aiohttp_session import setup as setup_session
@@ -17,6 +18,7 @@ async def setup(app):
                 mod = importlib.import_module(settings.SESSION_STORAGE)
                 storage = await getattr(mod, 'setup')(app)
             except Exception as e:
+                traceback.print_exc()
                 web_logger.warn(
                     "failed to setup {} storage. Using simple cookie storage".format(settings.SESSION_STORAGE))
         if not storage:

@@ -1,3 +1,4 @@
+import asyncio
 import importlib
 import os
 import traceback
@@ -80,7 +81,7 @@ class Application(AioApp):
 def run_app(app, *,
             shutdown_timeout=60.0, ssl_context=None,
             print=print, backlog=128, access_log_format=None,
-            access_log=access_logger, servers=1):
+            access_log=access_logger, servers=1, loop=None):
     """Run an app locally"""
     app['env'] = os.environ.get('AIOWEB_ENV', 'development')
     conf = {
@@ -96,13 +97,17 @@ def run_app(app, *,
     servers = conf.get('servers', 1)
     unix_socket = conf.get('unix')
 
+    user_supplied_loop = loop is not None
+    if loop is None:
+        loop = asyncio.get_event_loop()
+
+    app._set_loop(loop)
+
     if port is None:
         if not ssl_context:
             port = 8000
         else:
             port = 8443
-
-    loop = app.loop
 
     make_handler_kwargs = dict()
     if access_log_format is not None:
