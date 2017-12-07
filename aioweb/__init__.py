@@ -59,6 +59,7 @@ class Application(AioApp):
             await awaitable(shutdown(self))
         except (ImportError, AttributeError) as e:
             pass
+        await super().shutdown()
 
     def has_module(self, module):
         return module in self.modules

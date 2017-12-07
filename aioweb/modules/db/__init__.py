@@ -61,29 +61,29 @@ class DBFactory(object):
                 host_info.append('host = {}'.format(db_config.get('host')))
             if db_config.get('port'):
                 host_info.append('port = {}'.format(db_config.get('port')))
-            pool = asyncpg.create_pool(
+            pool = self.loop.run_until_complete(asyncpg.create_pool(
                 loop=self.loop,
                 host=db_config.get('host'),
                 port=db_config.get('port'),
                 database=db_config.get('database'),
                 user=db_config.get('user'),
                 password=db_config.get('password'),
-            )
+            ))
 
             dbwrapper = DBPGWrapper(pool)
         elif db_config.get('driver') == 'sqlite':
             import aioodbc
-            pool = aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
-                os.path.join(settings.BASE_DIR, 'db', db_config.get('database', 'db.sqlite3'))))
+            pool = self.loop.run_until_complete(aioodbc.create_pool(dsn="Driver=SQLite3;Database={}".format(
+                os.path.join(settings.BASE_DIR, 'db', db_config.get('database', 'db.sqlite3')))))
             dbwrapper = DBWrapper(pool)
         self.pools[connection] = dbwrapper
         return dbwrapper
 
     async def close(self):
         for pool in self.pools:
-            self.pools[pool].close()
-        for pool in self.pools:
-            await self.pools[pool].wait_closed()
+            await self.pools[pool].close()
+        # for pool in self.pools:
+        #     await self.pools[pool].wait_closed()
 
 
 class DBConnection(object):
@@ -219,19 +219,12 @@ class DBWrapper(object):
     def _get_cursor(self, conn):
         return conn.cursor()
 
-    async def await_pool(self):
-        if asyncio.iscoroutine(self.pool):
-            self.pool = await self.pool
-        return self.pool
-
     async def execute(self, sql, bindings=tuple()):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
 
     async def query(self, sql, bindings=tuple()):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
@@ -239,7 +232,6 @@ class DBWrapper(object):
                 return r if r else []
 
     async def first(self, sql, bindings=tuple(), column=None):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
@@ -252,7 +244,6 @@ class DBWrapper(object):
                 return res
 
     async def call(self, sql, bindings=tuple(), column=None):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             async with self._get_cursor(conn) as cur:
                 await cur.execute(self._prepare_sql(sql), bindings)
@@ -264,17 +255,18 @@ class DBWrapper(object):
                         return res[column]
                 return res
 
+    async def close(self):
+        await self.pool.close()
+
 
 class DBPGWrapper(DBWrapper):
 
     def __init__(self, pool):
         super().__init__(pool)
 
-    async def await_pool(self):
-        # if asyncio.iscoroutine(self.pool):
-        #     self.pool = \
-        await self.pool
-        return self.pool
+
+    async def close(self):
+        await self.pool.close()
 
     async def _set_type_conversion(self, conn):
         def _encoder(value):
@@ -291,20 +283,17 @@ class DBPGWrapper(DBWrapper):
         )
 
     async def execute(self, sql, bindings=tuple()):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             await self._set_type_conversion(conn)
             await conn.execute(*self._prepare_sql(sql, bindings))
 
     async def query(self, sql, bindings=tuple()):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             await self._set_type_conversion(conn)
             r = await conn.fetch(*self._prepare_sql(sql, bindings))
             return r if r else []
 
     async def first(self, sql, bindings=tuple(), column=None):
-        await self.await_pool()
         async with self.pool.acquire() as conn:
             await self._set_type_conversion(conn)
             if type(column) == int:
