@@ -89,6 +89,7 @@ async def setup(app):
     if backend_dir.is_dir():
         for backend in backend_dir.iterdir():
             if backend.is_dir():
+                app_loaders.append(jinja2.FileSystemLoader(str(backend / Path("views_min/"))))
                 app_loaders.append(jinja2.FileSystemLoader(str(backend / Path("views/"))))
 
     env = jinja2.Environment(
