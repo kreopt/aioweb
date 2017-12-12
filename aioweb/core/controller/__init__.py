@@ -1,6 +1,8 @@
 import os
 
+import time
 from aiohttp import web
+from aiohttp.log import web_logger
 from aiohttp_session import get_session
 
 from aioweb.core.controller.decorators import CtlDecoratorDescriptor
@@ -123,7 +125,10 @@ class Controller(object):
                     beforeActionRes.update(res)
 
         try:
+            start = time.perf_counter()
             res = await awaitable(action())
+            if not self.request.path.startswith('/static/'):
+                web_logger.debug(f"{self.request.path} exec {(time.perf_counter() - start) * 1000} ms")
         except web.HTTPException as e:
             if self.have_session:
                 self._private.flash.sync()
@@ -143,7 +148,10 @@ class Controller(object):
                 res = {}
             res.update(beforeActionRes)
 
+            start = time.perf_counter()
             response = await self.request.serializer.serialize(res)
+            if not self.request.path.startswith('/static/'):
+                web_logger.debug(f"{self.request.path} render {(time.perf_counter() - start) * 1000} ms")
 
             try:
                 headers = getattr(self.__class__, '__HEADERS')

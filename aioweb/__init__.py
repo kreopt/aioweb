@@ -81,7 +81,7 @@ class Application(AioApp):
 def run_app(app, *,
             shutdown_timeout=60.0, ssl_context=None,
             print=print, backlog=128, access_log_format=None,
-            access_log=access_logger, servers=1, loop=None):
+            access_log=access_logger, servers=1, instance=None, loop=None):
     """Run an app locally"""
     app['env'] = os.environ.get('AIOWEB_ENV', 'development')
     conf = {
@@ -117,13 +117,18 @@ def run_app(app, *,
 
     loop.run_until_complete(app.startup())
     if unix_socket:
+        path, ext = os.path.splitext(unix_socket)
+        if instance is None:
+            instance=''
+        else:
+            instance=f'_{instance}'
         sockets = []
         if servers == 1:
-            sockets = [unix_socket]
+            sockets = [f"{path}{instance}{ext}"]
         else:
             path, ext = os.path.splitext(unix_socket)
             for i in range(1, servers + 1):
-                sockets.append("{}.{:02d}{}".format(path, i, ext))
+                sockets.append("{}{}.{:02d}{}".format(path, instance, i, ext))
         for socket in sockets:
             try:
                 os.unlink(socket)
