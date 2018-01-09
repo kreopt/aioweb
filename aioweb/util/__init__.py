@@ -13,7 +13,7 @@ def extract_name_from_class(class_name, item_type):
 
 
 def awaitable(result):
-    if asyncio.iscoroutine(result):
+    if asyncio.iscoroutine(result) or hasattr(result, '__await__'):
         return result
     f = asyncio.Future()
     f.set_result(result)
