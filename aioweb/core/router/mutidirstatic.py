@@ -6,7 +6,7 @@ from aiohttp.web_exceptions import HTTPNotFound
 from aiohttp.web_response import StreamResponse
 from aiohttp.web_fileresponse import FileResponse
 from aiohttp.web_urldispatcher import StaticResource, ResourceRoute, PrefixResource
-from yarl import unquote, URL
+from yarl import URL
 
 
 class StaticMultidirResource(StaticResource):
@@ -47,7 +47,7 @@ class StaticMultidirResource(StaticResource):
                 'prefix': self._prefix}
 
     async def _handle(self, request):
-        filename = unquote(request.match_info['filename'])
+        filename = request.match_info['filename']
         filepath = None
         ret = None
         for directory in self._directories:

@@ -1,13 +1,15 @@
 import importlib
-import inspect
+import itertools
+# import inspect
 import os
+from functools import partial
+from pathlib import PurePosixPath
 
-import inflection
+# import inflection
 from aiohttp import hdrs, web
 from aiohttp.log import web_logger
 
 from aioweb.util import extract_name_from_class, awaitable, import_controller
-from aioweb.core.model import Model
 from .mutidirstatic import StaticMultidirResource
 from aioweb.core.controller.decorators import CtlDecoratorDescriptor
 from aioweb.core.controller.serializers import make_serializer
@@ -316,32 +318,100 @@ class Router(object):
         self._currentPackage = ''
 
 
-def make_route(*args, action=None):
-    class_found = False
-    route = ['']
-    for arg in args:
-        if inspect.isclass(arg):
-            class_found = True
-            if issubclass(arg, Model):
-                route.append(inflection.underscore(arg.__name__))
-            else:
-                raise AssertionError('You can only pass subclasses of aioweb.core.Model')
-        else:
-            if class_found:
-                raise AssertionError('Model class name can only be appear at the end')
-            if isinstance(arg, Model):
-                route.append(inflection.underscore(arg.__class__.__name__))
-                route.append(getattr(arg, arg.__primary_key__))
-            else:
-                raise AssertionError('You can only pass instances of aioweb.core.Model subclasses')
-    if not class_found and action:
-        route.append(action)
-    return '/'.join(route)
+class RouterState(object):
+    def __init__(self):
+        self.prefix = None
+        self.middleware = []
+        self.namespace = None
+
+
+class Router2(object):
+    def __init__(self, app):
+        self.app = app
+        self.states = [
+            RouterState()
+        ]
+
+    def __enter__(self):
+        self.states.append(RouterState())
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.states.pop()
+
+    def _wrap_middleware(self, handler):
+        middleware = itertools.chain.from_iterable([e.middleware for e in self.states if e.middleware is not None and len(e.middleware)])
+        old_handler = handler
+
+        async def _handler(request):
+            new_handler = old_handler
+            for m in middleware:
+                new_handler = partial(m, handler=new_handler)
+
+            return await awaitable(new_handler(request))
+
+        return _handler
+
+    def _add_route(self, method, url, handler, name=None, **kwargs):
+        prefix = PurePosixPath('/',
+                               *[e.prefix.strip('/') for e in self.states if e.prefix is not None],
+                               url.strip('/'))
+        namespace = ':'.join([e.namespace for e in self.states if e.namespace])
+        if namespace:
+            namespace = f'{namespace}:'
+        self.app.router.add_route(method,
+                                  prefix.as_posix(),
+                                  self._wrap_middleware(handler),
+                                  name=f'{namespace}{name}',
+                                  **kwargs)
+
+        return self
+
+    def head(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_HEAD, url, handler, name, **kwargs)
+
+    def get(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_GET, url, handler, name, **kwargs)
+
+    def post(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_POST, url, handler, name, **kwargs)
+
+    def put(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_PUT, url, handler, name, **kwargs)
+
+    def patch(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_PATCH, url, handler, name, **kwargs)
+
+    def delete(self, url, handler=None, name=None, **kwargs):
+        return self._add_route(hdrs.METH_DELETE, url, handler, name, **kwargs)
+
+    def prefix(self, url):
+        if url:
+            self.states[-1].prefix = url
+        return self
+
+    def static(self, prefix, search_paths, *args, **kwargs):
+        assert prefix.startswith('/')
+        if prefix.endswith('/'):
+            prefix = prefix[:-1]
+        resource = StaticMultidirResource(prefix, search_paths, *args, **kwargs)
+        self.app.router.register_resource(resource)
+        return self
+
+    def with_middleware(self, middlewares):
+        if middlewares:
+            self.states[-1].middleware = middlewares
+        return self
+
+    def namespace(self, namespace):
+        self.states[-1].namespace = namespace
+        return self
 
 
 def setup_routes(app):
     from config import routes
     setattr(app, 'controllers', {})
-    setattr(app, 'base_router', Router(app))
+    router = Router(app)
+    setattr(app, 'base_router', router)
 
-    routes.setup(app.base_router)
+    routes.setup(router)

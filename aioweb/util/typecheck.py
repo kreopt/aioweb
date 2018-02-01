@@ -64,7 +64,7 @@ def convert_type(obj: Any,
             if not (kr.valid and vr.valid):
                 return TypeCheckResult()
             cleaned_dict[kr.value] = vr.value
-        return TypeCheckResult(True, tuple(cleaned_dict))
+        return TypeCheckResult(True, dict(cleaned_dict))
 
     # List or Set, each element matches the type in __args__
     if type(candidate_type) == type(List) and \
