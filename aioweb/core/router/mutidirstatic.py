@@ -73,7 +73,7 @@ class StaticMultidirResource(StaticResource):
                 break
             else:
                 continue
-        if not ret:
+        if ret is None:
             raise HTTPNotFound()
         return ret
 

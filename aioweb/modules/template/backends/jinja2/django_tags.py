@@ -130,6 +130,9 @@ class DjangoUrl(Extension):
         else:
             query = None
 
+        for k in kwargs:
+            kwargs[k] = str(kwargs[k])
+
         try:
             backend_name = controller.router.backendName
         except:
