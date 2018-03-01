@@ -1,6 +1,7 @@
 import os
 
 import time
+import traceback
 from aiohttp import web
 from aiohttp.log import web_logger
 from aiohttp_session import get_session
@@ -136,7 +137,7 @@ class Controller(object):
         except Exception as e:
             if self.have_session:
                 self._private.flash.sync()
-            raise web.HTTPInternalServerError()
+            raise e
 
         if isinstance(res, web.Response):
             if self.have_session:
