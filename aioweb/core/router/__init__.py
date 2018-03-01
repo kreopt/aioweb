@@ -114,7 +114,10 @@ class Router(object):
             cleaned_entries = []
             for entry in accept_entries:
                 cleaned_entry = entry.split(';')[0].strip()
-                mime, subtype = cleaned_entry.split('/')
+                try:
+                    mime, subtype = cleaned_entry.split('/')
+                except ValueError:
+                    mime = cleaned_entry
                 if mime == '*':
                     cleaned_entry = ctrl_instance.__class__.DEFAULT_MIME
                 if cleaned_entry not in allowed_content_type[CtlDecoratorDescriptor.EXCEPT] and \
