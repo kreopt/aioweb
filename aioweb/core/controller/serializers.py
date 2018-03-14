@@ -4,11 +4,17 @@ import simplejson
 from aiohttp import web
 from aioweb.modules import template
 import asyncpg
-
+import datetime
 # TODO: move to di
 def encode_complex(obj):
      if isinstance(obj, asyncpg.Record):
          return dict(obj)
+     elif isinstance(obj, datetime.time):
+         return obj.strftime('%H:%M:%S%z')
+     elif isinstance(obj, datetime.datetime):
+         return obj.strftime('%Y-%m-%dT%H:%M:%S%z')
+     elif isinstance(obj, datetime.date):
+         return obj.strftime('%Y-%m-%d%z')
      raise TypeError(repr(obj) + " is not JSON serializable")
 
 def json_encoder(obj):
